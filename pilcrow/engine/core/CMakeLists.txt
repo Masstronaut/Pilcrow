@@ -120,7 +120,7 @@ foreach(Systems_file IN ITEMS ${Systems_files})
   source_group("src\systems" FILES "${Systems_file}" )
 endforeach()
 
-#The files in the src directory to include
+#The files in the src directory to compile
 set(include_files
   "include/Camera.hpp"
   "include/Detectors.hpp"
@@ -138,7 +138,6 @@ set(src_files
   "src/Simulation.cpp"
   "src/World.cpp"
   "src/World.inl"
-  "src/SettingsFileReader.cpp"
 )
 
 foreach(include_file IN ITEMS ${include_files})
