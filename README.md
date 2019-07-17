@@ -1,7 +1,8 @@
 # Engine
 ## Prerequisites for Windows 10:
-* CMake installed(https://cmake.org/download/) 3.14 or newer to support VS2019
+* CMake installed(https://cmake.org/download/) 3.14 or newer
 * Visual studio 2017 or 2019 installed (https://visualstudio.microsoft.com/vs/)
+* Submodules should be checked out/initialized, the gitsubmodulecheckout.bat command should do this for you if you're unfamiliar with it.
 ## Setup Guide:
  1. Navigate to %repoLocation%\build_scripts\windows
  2. Run the build script for your visual studio version
