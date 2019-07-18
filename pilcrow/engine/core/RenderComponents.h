@@ -2,21 +2,25 @@
 #include <memory>
 #include <string>
 
-#include <glm/glm.hpp>
+#include "pilcrow/engine/core/ReflectedGlm.hpp"
 
 #include "pilcrow/modules/jellyfish_renderer/Jellyfish.h"
 
 // base
-struct Renderable {};
+struct [[Meta::Reflectable("engine")]] Renderable {};
 
-struct RenderText : Renderable {
+sreflDeclareExternalType(Renderable);
+
+struct [[Meta::Reflectable("engine")]] RenderText : Renderable {
   std::string Text;
   glm::vec2   Position{0.f, 0.f};
   glm::vec3   Color{.5f, .8f, .2f};
   float       Size{1.f};
 };
 
-struct CModel : Renderable {
+sreflDeclareExternalType(RenderText);
+
+struct /* [[Meta::Reflectable("engine")]] */ CModel : Renderable {
   // TESTING: use Jellyfish::Model
 
   CModel(const std::string &file) : model(new Jellyfish::Model(file)) {}
@@ -24,5 +28,7 @@ struct CModel : Renderable {
   CModel(CModel &&)      = default;
   CModel &operator=(const CModel &) = default;
 
-  std::shared_ptr<Jellyfish::Model> model;
+  std::shared_ptr<Jellyfish::Model> model; // [[Meta::DoNotExpose]] ;
 };
+
+//sreflDeclareExternalType(CModel);

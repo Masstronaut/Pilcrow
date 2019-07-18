@@ -6,7 +6,7 @@
 #include <assimp/material.h>
 
 // glm
-#include <glm/glm.hpp>
+#include "pilcrow/engine/core/ReflectedGlm.hpp"
 
 // ours
 #include "Utils/ResourceSettings.hpp"  //g_resourcePath

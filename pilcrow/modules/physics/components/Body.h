@@ -2,7 +2,10 @@
 
 #include "pilcrow/modules/physics/Mathematics.h"
 
-struct Body {
+#include "SimpleReflection/Meta.hpp"
+
+
+struct [[Meta::Reflectable("physics")]]  Body {
   float restitution;
 
   float massInverse;
@@ -17,3 +20,5 @@ struct Body {
   void  SetMass(float m);
   float GetMass() const;
 };
+
+sreflDeclareExternalType(Body);

@@ -3,7 +3,8 @@
 #include <cstdint>
 
 enum class Keys { X, Y, A, B, L, R };
-struct Weapon {
+
+struct [[Meta::Reflectable]] Weapon {
   float        TimeSinceFired{1.f};
   float        FireRate{1.f};
   uint16_t     CurrentAmmo{20};
@@ -12,7 +13,9 @@ struct Weapon {
   uint16_t     MaxAmmo{20};
 };
 
-struct ReloadableClip {
+sreflDeclareExternalType(Weapon);
+
+struct [[Meta::Reflectable("engine")]] ReloadableClip {
   Keys     ReloadKey{Keys::Y};
   float    ReloadSpeed{1.f};
   float    TimeSinceReloaded{1.f};
@@ -20,16 +23,25 @@ struct ReloadableClip {
   uint16_t MaxClips{10};
 };
 
-struct Bullet {
+sreflDeclareExternalType(ReloadableClip);
+
+struct [[Meta::Reflectable("engine")]] Bullet {
   float Damage{1.f};
 };
-struct Lifetime {
+
+sreflDeclareExternalType(Bullet);
+
+struct [[Meta::Reflectable("engine")]] Lifetime {
   float Lifetime{1.f};
 };
 
-struct ChargeWeapon {
+sreflDeclareExternalType(Lifetime);
+
+struct [[Meta::Reflectable("engine")]] ChargeWeapon {
   float MinChargeTime{1.f};
   float CurrentCharge{0.f};
   bool  LoseChargeOverTime{false};
   float MaxChargeTime{1.f};
 };
+
+sreflDeclareExternalType(Transform);

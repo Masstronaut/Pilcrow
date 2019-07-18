@@ -58,19 +58,23 @@ void ComponentPrinter(const T &comp) {
   std::cout << comp << std::endl;
 }
 
-void TransformPrinter(const Transform &trans) {
-  std::cout << "{\n  pos : { " << trans.position.x << ", " << trans.position.y
-            << ", " << trans.position.z << " },\n  "
-            << "{\n  rot : { " << trans.rotation.x << ", " << trans.rotation.y
-            << ", " << trans.rotation.z << " },\n  "
-            << "{\n  scale : { " << trans.scale.x << ", " << trans.scale.y
-            << ", " << trans.scale.z << " }\n}\n";
+void TransformPrinter(const Transform &trans) 
+{
+  auto type = srefl::TypeId<Transform>();
+
+  auto position = type->GetField("position")->GetGetter()->Invoke(&trans).As<glm::vec3>();
+  auto rotation = type->GetField("rotation")->GetGetter()->Invoke(&trans).As<glm::vec3>();
+  auto scale = type->GetField("scale")->GetGetter()->Invoke(&trans).As<glm::vec3>();
+
+  std::cout << "{\n  pos : { " << trans.position.x << ", " << trans.position.y << ", " << trans.position.z << " },\n  "
+            << "{\n  rot : { " << trans.rotation.x << ", " << trans.rotation.y << ", " << trans.rotation.z << " },\n  "
+            << "{\n  sca : { " << trans.scale.x    <<  ", " << trans.scale.y   << ", " << trans.scale.z    << " }\n}\n";
 }
 
 class TransformPrinterSystem {
 public:
   EntitiesWith<const Transform> Entities;
-  void                          Update() {
+  void Update() {
     for(const auto &e : Entities) {
       TransformPrinter(e.Get<const Transform>());
     }
@@ -178,6 +182,7 @@ void ECSDemo() {
   TestWorld.AddSystem<CollisionDetection>("Physics Collision Detection");
   TestWorld.AddSystem<Resolution>("Physics Resolution");
   TestWorld.AddSystem<RenderSystem>("Rendering System");
+  TestWorld.AddSystem<TransformPrinterSystem>("Printer System");
 
   ArchetypeRef enemy{Sim.CreateArchetype("Nanosuit Character")};
   ArchetypeRef lens{Sim.CreateArchetype("Camera Lens")};
@@ -257,7 +262,14 @@ void ECSDemo() {
 
 #include "pilcrow/modules/physics/Mathematics.h"
 
+#include "GeneratedReflection/physics_ReflectionCode.h"
+#include "GeneratedReflection/engine_ReflectionCode.h"
+
 int main() {
+  GlmReflection::InitializeReflection();
+  engine_ReflectionInitialize::InitializeReflection();
+  physics_ReflectionInitialize::InitializeReflection();
+
   ECSDemo();
 
   return 0;
