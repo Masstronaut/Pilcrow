@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <unordered_map>
+#include <vector>
 #include "Utils/EventArena.hpp"
 #include "Utils/ThreadPool.hpp"
 
@@ -13,7 +14,7 @@ public:
   World &      CreateWorld(const std::string &name);
   World &      GetWorld(const std::string &name);
   ArchetypeRef CreateArchetype(const std::string &name = "Nameless Entity");
-
+  std::vector<std::string> Worlds() const;
 private:
   std::unordered_map<std::string, World> m_Worlds;
 };
