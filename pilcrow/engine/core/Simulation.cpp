@@ -21,3 +21,11 @@ World &Simulation::GetWorld(const std::string &name) {
 ArchetypeRef Simulation::CreateArchetype(const std::string &name) {
   return this->CreateWorld("Archetype World").CreateEntity(name);
 }
+
+std::vector<std::string> Simulation::Worlds() const {
+  std::vector<std::string> worlds;
+  for (const auto &entry : m_Worlds) {
+    worlds.emplace_back(entry.first);
+  }
+  return worlds;
+}
