@@ -7,8 +7,7 @@
 #include <vector>
 
 // glm
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "pilcrow/engine/core/ReflectedGlm.hpp"
 
 // gl
 #include <glad/include/glad.h>

@@ -12,8 +12,7 @@
 #include <GL/glu.h>
 
 // GLM
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "pilcrow/engine/core/ReflectedGlm.hpp"
 
 // ours
 #include "pilcrow/modules/jellyfish_renderer/GL/GLProgram.h"

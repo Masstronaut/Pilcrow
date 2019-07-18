@@ -1,7 +1,7 @@
 #pragma once
 
 // GLM
-#include <glm/glm.hpp>
+#include "pilcrow/engine/core/ReflectedGlm.hpp"
 
 namespace Jellyfish {
 struct Vertex {
