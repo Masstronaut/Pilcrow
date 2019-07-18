@@ -6,7 +6,7 @@
 #include <vector>
 
 // GLM
-#include <glm/glm.hpp>
+#include "pilcrow/engine/core/ReflectedGlm.hpp"
 
 // ours
 #include "Utils/Resource.hpp"

@@ -5,7 +5,7 @@
 #include <vector>
 
 // GLM
-#include <glm/glm.hpp>  //mat4
+#include "pilcrow/engine/core/ReflectedGlm.hpp"
 
 // ours
 #include "pilcrow/modules/jellyfish_renderer/GL/GLProgram.h"

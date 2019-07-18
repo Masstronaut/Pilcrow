@@ -4,7 +4,7 @@
 #include <string>
 
 // GLM
-#include <glm/glm.hpp>
+#include "pilcrow/engine/core/ReflectedGlm.hpp"
 
 // ours
 #include "Utils/EventArena.hpp"  //event messaging

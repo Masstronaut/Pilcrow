@@ -11,6 +11,8 @@ add_subdirectory(systems)
 target_sources(engine
 PRIVATE
     Detectors.hpp
+    ReflectedGlm.cpp
+    ReflectedGlm.hpp
     RenderComponents.h
     RenderSystem.cpp
     RenderSystem.h
@@ -40,11 +42,13 @@ PUBLIC
   slot_map
   glfw
   freetype
+  SimpleReflection
   Utils
 PRIVATE 
 )
 
-pilcrow_source_group(CMAKE_CURRENT_LIST_DIR engine)
-
 #The filter the library will be in
 set_target_properties(engine PROPERTIES FOLDER pilcrow/engine)
+
+pilcrow_source_group(CMAKE_CURRENT_LIST_DIR engine)
+pilcrow_create_reflection_target(engine)

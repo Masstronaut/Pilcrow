@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include "pilcrow/engine/core/ReflectedGlm.hpp"
 
 using Vec2 = glm::vec2;
 using Vec3 = glm::vec3;
@@ -28,5 +28,5 @@ using Mat4Param  = const Mat4 &;
 using QuatParam  = const Quat &;
 using TransParam = const Trans &;
 
-const float Epsilon  = std::numeric_limits<float>::epsilon();
-const float Infinity = std::numeric_limits<float>::infinity();
+constexpr float Epsilon  = std::numeric_limits<float>::epsilon();
+constexpr float Infinity = std::numeric_limits<float>::infinity();
