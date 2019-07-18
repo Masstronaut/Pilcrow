@@ -83,8 +83,19 @@ void REST_VM::handle_request(const web::http::http_request &message) {
             message.reply(web::http::status_codes::NotFound,
                           "Entity requested does not exist.");
           }
-        }
+        } 
       }
+    } else {
+      std::vector<std::string> worlds = m_simulation.Worlds();
+      std::string              worlds_string;
+      for(const auto &str : worlds) {
+        worlds_string.append(str);
+        worlds_string.push_back('\n');
+      }
+      message.reply(web::http::status_codes::OK,
+                    U("List of worlds:\n")
+                      + utility::string_t(worlds_string.begin(),
+                                          worlds_string.end()));
     }
   } else {
     message.reply(web::http::status_codes::InternalError,
