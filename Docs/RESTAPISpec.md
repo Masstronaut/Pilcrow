@@ -20,4 +20,5 @@
 | Change the name of an entity | PATCH | /Worlds/\<**World**>/Entities/\<**ID**> |
 | Add a component | PUT | /Worlds/\<**World**>/Entities/\<**ID**>/Components/<**Component**> |
 | Remove a component | DELETE | /Worlds/\<**World**>/Entities/\<**ID**>/Components/<**Component**> |
-| List of systems applying logic | GET | /Worlds/\<**World**>/Systems?EntityID=\<**ID**> |
+| List of systems in a world | GET | /Worlds/\<**World**>/Systems |
+| List of systems applying logic to an Entity | GET | /Worlds/\<**World**>/Systems?EntityID=\<**ID**> |
