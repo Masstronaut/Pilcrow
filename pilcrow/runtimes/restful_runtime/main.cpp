@@ -266,6 +266,7 @@ void ECSDemo() {
 #include "GeneratedReflection/engine_ReflectionCode.h"
 
 int main() {
+  srefl::InitializeReflection();
   GlmReflection::InitializeReflection();
   engine_ReflectionInitialize::InitializeReflection();
   physics_ReflectionInitialize::InitializeReflection();
