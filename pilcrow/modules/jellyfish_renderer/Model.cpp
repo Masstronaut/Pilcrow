@@ -21,6 +21,9 @@
 #include "pilcrow/modules/jellyfish_renderer/GL/GLTexture.h"
 
 namespace Jellyfish {
+
+std::unordered_map<std::string, std::vector<GLMesh>> Model::sMeshes;
+
 Model::Model(const std::string &path) : Resource(path) {
   // spacer for console readability
   std::cout << " " << std::endl;
@@ -33,14 +36,22 @@ Model::Model(const Model &model) : Resource(model) { Load(); }
 Model::~Model() = default;
 
 void Model::Draw() const {
+  if (nullptr == m_Meshes) {
+    return;
+  }
+
   // iMesh is abstract type, cannot use Draw() directly unless cast to real type
-  for(auto &mesh : m_Meshes) {
+  for(auto &mesh : *m_Meshes) {
     mesh.Draw();
   }
 }
 
 void Model::AssignShaderToAllMeshes(GLProgram &shader) {
-  for(auto &mesh : m_Meshes) {
+  if (nullptr == m_Meshes) {
+    return; 
+  }
+
+  for(auto &mesh : *m_Meshes) {
     mesh.AssignShader(shader);
   }
 }
@@ -56,19 +67,34 @@ std::string Model::Directory() const {
 bool Model::Reloadable() const { return false; }
 
 bool Model::LoadImpl() {
-  // just use assimp loader functions for now
-  std::cout << "Attempting to load Model: " << this->Path() << std::endl;
-  bool loadstatus = Assimp_LoadModelFromFile(this->Path(), this->Name());
+  bool loadstatus{ false };
+  auto it = sMeshes.find(this->Path());
 
-  if(loadstatus) {
-    std::cout << "Model was successfully loaded." << std::endl;
-  } else {
-    std::cout << "ERROR! Model could not be loaded!  See Model::LoadImpl()"
-              << std::endl;
+  if (it == sMeshes.end())
+  {
+    // just use assimp loader functions for now
+    std::cout << "Attempting to load Model: " << this->Path() << std::endl;
+    loadstatus = Assimp_LoadModelFromFile(this->Path(), this->Name());
+
+    if (loadstatus) {
+      std::cout << "Model was successfully loaded." << std::endl;
+    }
+    else {
+      std::cout << "ERROR! Model could not be loaded!  See Model::LoadImpl()"
+        << std::endl;
+
+      m_Meshes = nullptr;
+    }
+
+    // spacer for console readability
+    std::cout << " " << std::endl;
   }
-
-  // spacer for console readability
-  std::cout << " " << std::endl;
+  else
+  {
+    m_Meshes = &it->second;
+    loadstatus = true;
+  }
+  
   return loadstatus;
 }
 

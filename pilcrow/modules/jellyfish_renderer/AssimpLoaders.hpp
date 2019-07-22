@@ -106,17 +106,18 @@ GLMesh Model::Assimp_ProcessMesh(aiMesh &mesh, const aiScene &scene) {
 }  // endfunc
 
 // Recursive down node tree to process all mesh nodes
-void Model::Assimp_ProcessNode(aiNode *node, const aiScene *scene) {
+void Model::Assimp_ProcessNode(std::vector<GLMesh>& meshes, aiNode *node, const aiScene *scene) {
   for(unsigned i{0}; i < node->mNumMeshes; ++i) {
     aiMesh *mesh{scene->mMeshes[node->mMeshes[i]]};
 
     if(mesh && scene) {
-      m_Meshes.push_back(std::move(Assimp_ProcessMesh(*mesh, *scene)));
+      meshes.push_back(std::move(Assimp_ProcessMesh(*mesh, *scene)));
       std::cout << "Assimp Node successfullly processed." << std::endl;
     }
   }
+
   for(unsigned i{0}; i < node->mNumChildren; ++i) {
-    Assimp_ProcessNode(node->mChildren[i], scene);
+    Assimp_ProcessNode(meshes, node->mChildren[i], scene);
   }
 
   return;
@@ -147,7 +148,12 @@ bool Model::Assimp_LoadModelFromFile(const std::string &path,
   } else  // scene ok, process
   {
     std::cout << "File OK! Processing scene..." << std::endl;
-    Assimp_ProcessNode(scene->mRootNode, scene);
+
+    auto& meshes = sMeshes[path];
+
+    m_Meshes = &meshes;
+
+    Assimp_ProcessNode(meshes, scene->mRootNode, scene);
     m_scalefactor
       = 1.0f
         / glm::max(m_mx_vtx.x - m_mn_vtx.x,

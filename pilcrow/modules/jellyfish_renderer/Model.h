@@ -3,6 +3,7 @@
 // std
 #include <limits>
 #include <memory>  //sharedptr
+#include <unordered_map>
 #include <vector>
 
 // GLM
@@ -39,19 +40,21 @@ public:
   void AssignShaderToAllMeshes(GLProgram &shader);
 
 private:
+  static std::unordered_map<std::string, std::vector<GLMesh>> sMeshes;
+
   std::string  Directory() const override;
   virtual bool Reloadable() const final;
   virtual bool LoadImpl() final;
   virtual void UnloadImpl() final;
 
   // TODO: fix so not GL
-  std::vector<GLMesh> m_Meshes;
+  std::vector<GLMesh>* m_Meshes{ nullptr };
   std::vector<std::shared_ptr<GLTexture>>
   LoadMaterialTextures(aiMaterial *mat, int textureType);
 
   // assimp laoders -- will probably move out of Model once we have a proper
   // memory management system
-  void Assimp_ProcessNode(aiNode *node, const aiScene *scene);
+  void Assimp_ProcessNode(std::vector<GLMesh>& meshes, aiNode *node, const aiScene *scene);
 
   // TODO: fix hardcoded glmesh here
   GLMesh Assimp_ProcessMesh(aiMesh &mesh, const aiScene &scene);
