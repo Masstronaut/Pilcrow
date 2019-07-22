@@ -350,4 +350,15 @@ void GLWindow::Callback_MouseButton(GLFWwindow * /*window*/, int button,
   // set window state data
   g_singleton_window->m_Cursor.buttonStates[button] = action;
 }
+
+void GLWindow::CaptureMouse(bool aCapture) {
+  if (aCapture)
+  {
+    glfwSetInputMode(m_WindowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  }
+  else
+  {
+    glfwSetInputMode(m_WindowHandle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+  }
+}
 }  // namespace Jellyfish

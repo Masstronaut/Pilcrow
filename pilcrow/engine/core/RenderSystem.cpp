@@ -7,7 +7,15 @@
 Camera *cam;
 
 void MouseCallback2(const Jellyfish::iWindow::EMouseMoved &mme) {
+  static bool captured = false;
+
   if(mme.cursorData.buttonHeld[GLFW_MOUSE_BUTTON_RIGHT] == GLFW_PRESS) {
+    if (false == captured)
+    {
+      Jellyfish::g_singleton_window->CaptureMouse(true);
+      captured = true;
+    }
+
     float       sensitivity{.07f};
     const float xoff{sensitivity * (mme.newPosition.x - mme.oldPosition.x)};
     const float yoff{sensitivity * (mme.newPosition.y - mme.oldPosition.y)};
@@ -15,6 +23,11 @@ void MouseCallback2(const Jellyfish::iWindow::EMouseMoved &mme) {
     cam->pitch -= yoff;
     if(cam->pitch > 89.9f) { cam->pitch = 89.9f; }
     if(cam->pitch < -89.9f) { cam->pitch = -89.9f; }
+  }
+
+  if (mme.cursorData.buttonHeld[GLFW_MOUSE_BUTTON_RIGHT] == GLFW_RELEASE) {
+    Jellyfish::g_singleton_window->CaptureMouse(false);
+    captured = false;
   }
 }
 // void ScrollCallback2(const GLFWWindow::EMouseScrolled &mse) {
@@ -73,6 +86,14 @@ inline void WindowManager::ProcessInput(Camera &cam) {
   std::vector<int> keyarray;
   pWindow->PollInput(keyarray);
 
+  // This is bad, but I really don't want to have to make a system for modifier
+  // keys right now.
+  for (int i : keyarray) {
+    if (i == GLFW_KEY_LEFT_SHIFT || i == GLFW_KEY_RIGHT_SHIFT) {
+      camSpeed *= 10.f;
+    }
+  }
+
   for(int i : keyarray) {
     if(i == GLFW_KEY_ESCAPE) {
       pWindow->SetWindowState(Jellyfish::WindowState::closed);
@@ -92,7 +113,9 @@ inline void WindowManager::ProcessInput(Camera &cam) {
     } else if(i == GLFW_KEY_D) {
       cam.position += cam.Right() * camSpeed;
     } else if(i == GLFW_KEY_SPACE) {
-      cam.LookAt({0.f, 0.f, 0.f});
+      cam.position += cam.up * camSpeed;
+    } else if(i == GLFW_KEY_C) {
+      cam.position -= cam.up * camSpeed;
     }
   }  // endfunc
 }

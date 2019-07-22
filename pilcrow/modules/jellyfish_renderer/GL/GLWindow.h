@@ -33,6 +33,8 @@ public:
 
   void ResizeWindow(unsigned width, unsigned height);
 
+  void CaptureMouse(bool aCapture);
+
 private:
   // glfw callback functions
   static void Callback_ResizeWindow(GLFWwindow *windowhandle, int width,
