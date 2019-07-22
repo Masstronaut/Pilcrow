@@ -143,8 +143,8 @@ struct ParallelGravity {
 // *  Global Settings INIT  *
 // ---------------------------
 // window
-float g_InitialWindowWidth  = 100.0;
-float g_InitialWindowHeight = 100.0;
+unsigned int g_InitialWindowWidth = 100;
+unsigned int g_InitialWindowHeight = 100;
 bool  g_StartFullscreen     = false;
 // resources
 const char *g_ResourcePath = "../../../../Resources/";
