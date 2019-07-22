@@ -205,25 +205,30 @@ void ECSDemo() {
   // set SpawnNanos to false if you want higher FPS and less nanosuits
   std::vector<EntityRef> nanos;
   if(g_SpawnNanos) {
-    float scalor = 1.f;  // differentiating scale
+    float scalar = 1.f;  // differentiating scale
     float angle  = 0.f;  // pi/6
 
     for(int i{0}; i < 4; ++i) {
       for(int j{0}; j < 4; ++j) {
         nanos.emplace_back(EnemyA.Clone());
 
-        // position
-        nanos.back().Get<Transform>().position = glm::vec3{i * 2, 0, j * 2};
+        auto& transform = nanos.back().Get<Transform>();
 
-        // rotation -- NOT WORKING!
-        nanos.back().Get<Transform>().rotation.y *= angle;
-        angle += 30.f;  // degrees or radians? lacking documentation.
+        // position
+        transform.position = glm::vec3{i * 2, 0, j * 2};
+
+        // rotation
+        transform.rotation.y = angle;
+
+        angle += glm::radians(30.f);
 
         // scale
-        nanos.back().Get<Transform>().scale.x *= scalor;
-        nanos.back().Get<Transform>().scale.y *= scalor;
-        nanos.back().Get<Transform>().scale.z *= scalor;
-        scalor = scalor + 0.1f;
+        //transform.scale.x *= scalar;
+        //transform.scale.y *= scalar;
+        //transform.scale.z *= scalar;
+
+        transform.scale *= scalar;
+        scalar = scalar + 0.1f;
       }
     }
 
