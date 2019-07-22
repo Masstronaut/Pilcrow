@@ -203,15 +203,6 @@ void GLWindow::PollInput(std::vector<int> &keyarray) {
       // EKeyPressed event {key};
       // this->Emit(event);
       keyarray.push_back(key);
-
-      // DEBUG OUTPUT
-      const char *key_name = glfwGetKeyName(key, 0);
-      if(key_name != nullptr) {
-        std::cout << "Key Pressed: " << key_name << std::endl;
-      } else {
-        std::cout << "Key Pressed: " << key << "(int code)" << std::endl;
-      }
-
     }  // endif
   }    // endfor
 
@@ -244,17 +235,13 @@ void GLWindow::Callback_WindowClose(GLFWwindow *windowhandle) {
 
   g_singleton_window->SetWindowState(WindowState::closed);
 }
-void GLWindow::Callback_WindowMove(GLFWwindow * /*windowhandle*/, int xpos,
-                                   int ypos) {
-  // DEBUG:
-  std::cout << "Window position was moved to: " << xpos << ", " << ypos
-            << std::endl;
+void GLWindow::Callback_WindowMove(GLFWwindow * /*windowhandle*/, 
+                                   int /*xpos*/,
+                                   int /*ypos*/) {
 }
 void GLWindow::Callback_CursorPosition(GLFWwindow * /*windowhandle*/,
-                                       double xpos, double ypos) {
-  // DEBUG:
-  std::cout << "Cursor position moved: " << xpos << ", " << ypos << std::endl;
-
+                                       double xpos, 
+                                       double ypos) {
   // send event
   EMouseMoved event;
   event.newPosition = glm::dvec2{xpos, ypos};
