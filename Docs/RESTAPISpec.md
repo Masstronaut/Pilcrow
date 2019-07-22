@@ -31,6 +31,6 @@
 | List all entities in a world | GET | /Worlds/\<**World**>/Entities |
 | List all systems in a world | GET | /Worlds/\<**World**>/Systems |
 | Create an Entity | POST | /Worlds/\<**World**>/Entities |
-| Delete an Entity | DELETE | /Worlds/\<**World**>/Entities |
+| Delete an Entity | DELETE | /Worlds/\<**World**>/Entities/\<**ID**> |
 | Add a system | PUT | /Worlds/\<**World**>/Systems/\<**System**> |
 | Remove a System | DELETE | /Worlds/\<**World**>/Systems/\<**System**> |
