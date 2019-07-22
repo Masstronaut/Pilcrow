@@ -182,7 +182,7 @@ void ECSDemo() {
   TestWorld.AddSystem<CollisionDetection>("Physics Collision Detection");
   TestWorld.AddSystem<Resolution>("Physics Resolution");
   TestWorld.AddSystem<RenderSystem>("Rendering System");
-  TestWorld.AddSystem<TransformPrinterSystem>("Printer System");
+  //TestWorld.AddSystem<TransformPrinterSystem>("Printer System");
 
   ArchetypeRef enemy{Sim.CreateArchetype("Nanosuit Character")};
   ArchetypeRef lens{Sim.CreateArchetype("Camera Lens")};
