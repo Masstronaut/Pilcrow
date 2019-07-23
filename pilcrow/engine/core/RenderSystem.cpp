@@ -69,6 +69,8 @@ void WindowManager::Init(World &world) {
 
   // Set callback functions
   pWindow->On(MouseCallback2);
+
+  m_world = &world;
 }
 
 void WindowManager::FrameStart() {
@@ -83,18 +85,21 @@ inline void WindowManager::ProcessInput(Camera &cam) {
   // TODO(unknown): fix camera
   float camSpeed{2.f * Dt};
 
-  std::vector<int> keyarray;
-  pWindow->PollInput(keyarray);
+  pWindow->PollInput(m_keyArray);
 
   // This is bad, but I really don't want to have to make a system for modifier
   // keys right now.
-  for (int i : keyarray) {
+  for (int i : m_keyArray) {
     if (i == GLFW_KEY_LEFT_SHIFT || i == GLFW_KEY_RIGHT_SHIFT) {
       camSpeed *= 10.f;
     }
+    
+    KeyEvent event;
+    event.Key = i;
+    m_world->Emit(event);
   }
 
-  for(int i : keyarray) {
+  for(int i : m_keyArray) {
     if(i == GLFW_KEY_ESCAPE) {
       pWindow->SetWindowState(Jellyfish::WindowState::closed);
     } else if(i == GLFW_KEY_1) {

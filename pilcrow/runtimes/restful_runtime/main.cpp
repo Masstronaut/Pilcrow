@@ -166,11 +166,13 @@ bool g_SpawnNanos = false;
 
 ArchetypeRef CreatePlayerArchetype(Simulation& Sim)
 {
-  ArchetypeRef player{ Sim.CreateArchetype("Hero") };
-  CModel& playerModel{ player.Add<CModel>("nanosuit.obj") };
+  auto player = Sim.CreateArchetype("Hero");
+  auto& playerModel  = player.Add<CModel>("nanosuit.obj");
+  player.Add<Player>();
+
   float s = playerModel.model->GetScale();
-  auto transform = player.Add<Transform>();
-  transform.position = { 0.0f, 0.0f, 0.0f };
+  auto& transform = player.Add<Transform>();
+  transform.position = { 0.0f, 0.0f, 3.0f };
   transform.rotation = { 0.f, 0.f, 0.f };
   transform.scale = { s, s, s };
 
@@ -182,13 +184,15 @@ ArchetypeRef CreateEnemyArchetype(Simulation& Sim)
 {
   ArchetypeRef enemy{ Sim.CreateArchetype("Nanosuit Character") };
   enemy.Add<RigidBody>();
-  CModel& enemyModel{ enemy.Add<CModel>("nanosuit.obj") };
+  auto& enemyModel = enemy.Add<CModel>("nanosuit.obj");
 
   float s = 0.f;
+
   s = enemyModel.model->GetScale();
-  enemy.Add<Transform>().scale = { s, s, s };
-  enemy.Get<Transform>().position = { 0.0f, 0.0f, 0.0f };
-  enemy.Get<Transform>().rotation = { 0.f, 0.f, 0.f };
+  auto& transform = enemy.Add<Transform>();
+  transform.scale = { s, s, s };
+  transform.position = { 0.0f, 0.0f, 0.0f };
+  transform.rotation = { 0.f, 0.f, 0.f };
 
   return enemy;
 }
@@ -223,9 +227,11 @@ void ECSDemo() {
   TestWorld.AddSystem<Resolution>("Physics Resolution");
   TestWorld.AddSystem<RenderSystem>("Rendering System");
   //TestWorld.AddSystem<TransformPrinterSystem>("Printer System");
-  //TestWorld.AddSystem<PlayerSystem>("PlayerSystem");
+
+  TestWorld.AddSystem<PlayerSystem>("PlayerSystem", TestWorld);
 
   auto playerArchetype = CreatePlayerArchetype(Sim);
+  EntityRef player{ TestWorld.Spawn(playerArchetype) };
 
   // Camera
   auto cameraArchetype = CreateCameraArchetype(Sim);
@@ -237,7 +243,6 @@ void ECSDemo() {
 
   // Enemies
   auto enemyArchetype = CreateEnemyArchetype(Sim);
-  EntityRef EnemyA{ TestWorld.Spawn(enemyArchetype) };
 
   std::vector<EntityRef> nanos;
   if(g_SpawnNanos) {
@@ -246,9 +251,10 @@ void ECSDemo() {
 
     for(int i{0}; i < 4; ++i) {
       for(int j{0}; j < 4; ++j) {
-        nanos.emplace_back(EnemyA.Clone());
+        nanos.emplace_back(TestWorld.Spawn(enemyArchetype));
 
         auto& transform = nanos.back().Get<Transform>();
+        auto& model = nanos.back().Get<CModel>();
 
         // position
         transform.position = glm::vec3{i * 2, 0, j * 2};
@@ -256,28 +262,15 @@ void ECSDemo() {
         // rotation
         transform.rotation.y = angle;
 
-        angle += glm::radians(30.f);
 
         // scale
-        //transform.scale.x *= scalar;
-        //transform.scale.y *= scalar;
-        //transform.scale.z *= scalar;
-
         transform.scale *= scalar;
+
+        // Iteration
+        angle += glm::radians(30.f);
         scalar = scalar + 0.1f;
       }
     }
-
-    // TODO(unknown): google test this
-    // Model remove testing
-    nanos[0].Remove<CModel>();
-
-    // TODO(unknown): google test this
-    // Model change testing
-    //CModel bunny{"bunny.ply"};
-    //s                               = bunny.model->GetScale();
-    //nanos[1].Get<CModel>()          = bunny;
-    //nanos[1].Get<Transform>().scale = {s, s, s};
   }
 
   // Makes the Game exit on window close

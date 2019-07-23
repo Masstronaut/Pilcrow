@@ -4,6 +4,19 @@
 
 #include "pilcrow/modules/shmup/Source.hpp"
 
+PlayerSystem::PlayerSystem(World& aWorld)
+{
+  aWorld.On([this](KeyEvent const& aKeyEvent) 
+    {
+      OnKeyEvent(aKeyEvent);
+    });
+}
+
+
+void PlayerSystem::OnKeyEvent(KeyEvent const& aKeyEvent)
+{
+  std::cout << aKeyEvent.Key << "\n";
+}
 
 void PlayerSystem::PreProcess()
 {
@@ -12,10 +25,10 @@ void PlayerSystem::PreProcess()
 
 void PlayerSystem::PostProcess()
 {
-  std::cout << "postprocess\n";
+  //std::cout << "postprocess\n";
 }
 
-void PlayerSystem::Process(Transform& aTransform, Player const& aPlayer)
+void PlayerSystem::Process(Player const& aPlayer,Transform& aTransform)
 {
   std::cout << "process\n";
 }

@@ -19,6 +19,8 @@ struct WindowManager {
   void                 FrameEnd();
   float                Dt{0.f};
 
+  std::vector<int> GetKeys();
+
 private:
   // render context
   Jellyfish::iWindow *pWindow{nullptr};
@@ -26,6 +28,14 @@ private:
   void      ProcessInput(Camera &cam);
   glm::vec2 m_windowSizeSetting{g_InitialWindowWidth, g_InitialWindowHeight};
   bool      m_windowFullscreenSetting{g_StartFullscreen};
+
+  std::vector<int> m_keyArray;
+  World* m_world;
+};
+
+struct KeyEvent
+{
+  int Key;
 };
 
 struct RenderSystem {
