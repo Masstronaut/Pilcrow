@@ -26,6 +26,7 @@ public:
   Component &Get();
   template <typename Component>
   const Component &Get() const;
+  void *           Get(const std::string &Component);
 
   template <typename Component, typename... Args>
   Component &Add(Args &&... args);
@@ -35,7 +36,6 @@ public:
   EntityID           ID() const;
   const std::string &Name() const;
   Entity &           Name(const std::string &name);
-
 
   std::vector<std::string> GetComponentTypes() const;
   friend class World;

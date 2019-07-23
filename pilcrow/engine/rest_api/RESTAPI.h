@@ -52,7 +52,7 @@ public:
     void    WorldEntities(const std::string &world);
     void    WorldSystems(const std::string &world);
     void    GetEntityComponents(const Entity *entity, EntityRef ER);
-    void    EntityComponents(EntityRef entity);
+    void    EntityComponents(Entity *entity, EntityRef ER);
 
     void PatchWorldEntity(EntityRef entity);
 

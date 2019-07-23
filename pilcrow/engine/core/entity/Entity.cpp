@@ -2,10 +2,13 @@
 #include <utility>
 #include <vector>
 
+//#include <SimpleReflection/Type.hpp>
+
 #include "pilcrow/engine/core/entity/Entity.hpp"
 #include "pilcrow/engine/core/entity/EntityRef.hpp"
 
 #include "pilcrow/engine/core/World.hpp"
+
 
 Entity::Entity(World &world, EntityID id)
   : m_World(world), m_ID(std::move(id)), m_Name("Nameless Entity") {}
@@ -25,6 +28,17 @@ Entity::~Entity() { this->SafelyDisposeComponents(); }
 
 bool Entity::Has(std::type_index component_type) const {
   return m_Components.count(component_type) > 0;
+}
+
+void *Entity::Get(const std::string &Component) { 
+  std::string componentName;
+  for (const auto& kv : m_Components) {
+    componentName = kv.first.name();
+	if (auto idx{ componentName.find(Component) }; idx != std::string::npos) {
+      return this->m_World.GetComponentPool(kv.first)->Get(kv.second);
+	}
+  }
+  return nullptr; 
 }
 
 void Entity::SafelyDisposeComponents() {

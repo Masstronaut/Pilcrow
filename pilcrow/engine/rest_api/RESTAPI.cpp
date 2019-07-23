@@ -13,7 +13,9 @@
 #include <cpprest/asyncrt_utils.h>
 #include <cpprest/json.h>
 #include <cpprest/uri.h>
-
+#include <SimpleReflection/Type.hpp>
+#include <SimpleReflection/Property.hpp>
+#include <SimpleReflection/Attribute.hpp>
 
 #include "pilcrow/engine/core/Simulation.hpp"
 
@@ -96,7 +98,7 @@ void REST_VM::RequestHandler::WorldEntities(const std::string &world) {
       GetEntityComponents(entity, ER);
       return;
     } else if(m_RequestPath.size() == 6) {
-      EntityComponents(ER);
+      EntityComponents(entity, ER);
       return;
     }
   }
@@ -113,7 +115,25 @@ void REST_VM::RequestHandler::GetEntityComponents(const Entity *entity, EntityRe
   entityJson[U("Components")] = web::json::value::array(components);
   m_Request.reply(web::http::status_codes::OK, entityJson);
 }
-void REST_VM::RequestHandler::EntityComponents(EntityRef entity) {
+void REST_VM::RequestHandler::EntityComponents(Entity* entity, EntityRef ER) {
+  // Request path length is 6 when this function is invoked
+  if(6 != m_RequestPath.size()) return;
+  
+  std::string component_type{m_RequestPath[5].begin(), m_RequestPath[5].end()};
+  void *      component{entity->Get(component_type)};
+
+  srefl::Type *reflectedComponent{srefl::Type::GetGlobalType(component_type)};
+  const auto & fields{reflectedComponent->GetFields()};
+  if (m_Request.method() == web::http::methods::GET) {
+    web::json::value response;
+    for(const auto &field : fields) {
+      //response[utility::string_t(field.first.begin(), field.first.end())];
+
+      //= srefl::TrueOrFalse << field.second->GetPropertyType()->GetName() << std::endl;
+    }
+  }
+
+
 
 }
 void REST_VM::RequestHandler::PatchWorldEntity(EntityRef entity) {
@@ -132,7 +152,6 @@ void REST_VM::RequestHandler::PatchWorldEntity(EntityRef entity) {
     };
     str_find_replace(name, std::string{"%20"}, std::string{" "});
     entity.Name(name);
-    // @@TODO: Send a response
     m_Request.reply(web::http::status_codes::OK, EntityRefJson(entity));
   }
 }

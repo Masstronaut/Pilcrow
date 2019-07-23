@@ -42,7 +42,7 @@ struct RenderSystem {
 
     // RENDERER LIB TEST
     Jellyfish::Derp test;
-    test.DoAThing();  // prints a thing
+    //test.DoAThing();  // prints a thing
   }
 
   void PreProcess() {

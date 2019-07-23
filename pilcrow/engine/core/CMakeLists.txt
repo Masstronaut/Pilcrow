@@ -7,6 +7,7 @@ add_subdirectory(entity)
 add_subdirectory(settings)
 add_subdirectory(system)
 add_subdirectory(systems)
+add_subdirectory(serialization)
 
 target_sources(engine
 PRIVATE
