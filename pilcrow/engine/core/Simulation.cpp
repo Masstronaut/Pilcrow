@@ -18,6 +18,10 @@ World &Simulation::GetWorld(const std::string &name) {
   return CreateWorld(name);
 }
 
+void Simulation::DeleteWorld(const std::string &name) {
+  if(auto it{m_Worlds.find(name)}; it != m_Worlds.end()) m_Worlds.erase(it);
+}
+
 ArchetypeRef Simulation::CreateArchetype(const std::string &name) {
   return this->CreateWorld("Archetype World").CreateEntity(name);
 }

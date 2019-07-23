@@ -35,10 +35,15 @@ public:
   const T &GetComponent(EntityID entity) const;
   void *   GetComponent(EntityID component, std::type_index ComponentType);
 
+  std::vector<std::pair<typename slot_map<Entity>::key_type, std::string>>
+                GetEntities() const;
   Entity *      GetEntity(EntityID ID);
   const Entity *GetEntity(EntityID ID) const;
   EntityRef     Spawn(ArchetypeRef archetype);
   EntityRef     Spawn(EntityRef archetype);
+  EntityRef     Spawn(const std::string &name = "New Entity");
+
+  std::vector<std::string> Systems() const;
 
   template <typename T, typename... Args>
   void AddSystem(const std::string &name = "Nameless System", Args &&... args);

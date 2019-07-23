@@ -3,6 +3,7 @@
 #include <string>
 #include <typeindex>
 #include <unordered_map>
+#include <vector>
 
 #include "pilcrow/engine/core/entity/EntityID.hpp"
 
@@ -35,6 +36,8 @@ public:
   const std::string &Name() const;
   Entity &           Name(const std::string &name);
 
+
+  std::vector<std::string> GetComponentTypes() const;
   friend class World;
 
 private:

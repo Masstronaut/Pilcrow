@@ -52,6 +52,19 @@ Entity &           Entity::Name(const std::string &name) {
   return *this;
 }
 
+std::vector<std::string> Entity::GetComponentTypes() const {
+  std::vector<std::string> result;
+  for (const auto& kv : m_Components) {
+    result.push_back(kv.first.name());
+  }
+  for (std::string& component : result) {
+    if (auto it{ component.find(' ') }; it != std::string::npos) {
+      component = component.substr(it + 1, std::string::npos);
+    }
+  }
+  return result;
+}
+
 void *Entity::Get(std::type_index component) {
   return m_World.GetComponent(m_Components[component], component);
   return nullptr;
