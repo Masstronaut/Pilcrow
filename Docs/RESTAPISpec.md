@@ -15,7 +15,7 @@
 | Description | HTTP Verb | Path |
 | :---------- | :-------- | :--- |
 | List all components on an entity | GET | /Worlds/\<**World**>/Entities/\<**ID**>/Components |
-| Read component by type | GET | /Worlds/\<**World**>/Entities/\<**ID**>/Components/\<**Type**> |
+| Read component by type | GET | /Worlds/\<**World**>/Entities/\<**ID**>/Components/\<**Component**> |
 | Modify a component | PUT | /Worlds/\<**World**>/Entities/\<**ID**>/Components/\<**Component**> |
 | Modify a single value of a component | PATCH | /Worlds/\<**World**>/Entities/\<**ID**>/Components/\<**Component**>?Field=<**Field**> |
 | Change the name of an entity | PATCH | /Worlds/\<**World**>/Entities/\<**ID**>?Name=<**Name**> |
