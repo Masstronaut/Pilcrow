@@ -18,7 +18,7 @@
 | Read component by type | GET | /Worlds/\<**World**>/Entities/\<**ID**>/Components/\<**Type**> |
 | Modify a component | PUT | /Worlds/\<**World**>/Entities/\<**ID**>/Components/\<**Component**> |
 | Modify a single value of a component | PATCH | /Worlds/\<**World**>/Entities/\<**ID**>/Components/\<**Component**>?Field=<**Field**> |
-| Change the name of an entity | PATCH | /Worlds/\<**World**>/Entities/\<**ID**> |
+| Change the name of an entity | PATCH | /Worlds/\<**World**>/Entities/\<**ID**>?Name=<**Name**> |
 | Add a component | PUT | /Worlds/\<**World**>/Entities/\<**ID**>/Components/<**Component**> |
 | Remove a component | DELETE | /Worlds/\<**World**>/Entities/\<**ID**>/Components/<**Component**> |
 | List systems applying logic to an Entity | GET | /Worlds/\<**World**>/Systems?EntityID=\<**ID**> |
