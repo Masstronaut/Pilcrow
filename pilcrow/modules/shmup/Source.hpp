@@ -24,6 +24,6 @@ public:
   void OnKeyEvent(KeyEvent const& aKeyEvent);
 
   void PreProcess();
-  void Process(Player const& aPlayer,Transform& aTransform);
+  void Process(Player const& aPlayer,Transform& aTransform) const;
   void PostProcess();
 };

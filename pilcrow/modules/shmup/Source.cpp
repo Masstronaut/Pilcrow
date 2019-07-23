@@ -28,7 +28,7 @@ void PlayerSystem::PostProcess()
   //std::cout << "postprocess\n";
 }
 
-void PlayerSystem::Process(Player const& aPlayer,Transform& aTransform)
+void PlayerSystem::Process(Player const& aPlayer,Transform& aTransform) const
 {
   std::cout << "process\n";
 }
