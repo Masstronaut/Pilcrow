@@ -31,6 +31,7 @@ PUBLIC
   ${PROJECT_SOURCE_DIR}
 PRIVATE
   ${PROJECT_SOURCE_DIR}/pilcrow/dependencies
+  ${CPPREST_INCLUDE_DIRS}
 )
 
 target_compile_features(engine PUBLIC cxx_std_17)
