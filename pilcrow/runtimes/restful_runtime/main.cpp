@@ -46,6 +46,8 @@ std::string RelativePath() {
 
 #include "pilcrow/engine/core/components/Transform.h"
 
+#include "pilcrow/modules/shmup/Source.hpp"
+
 struct RigidBody {
   glm::vec3 velocity{0.f, 0.f, 0.f}, acceleration{0.f, 0.f, 0.f};
   bool      isStatic{false}, isGhost{false};
@@ -162,6 +164,44 @@ bool g_SpawnNanos = false;
 #include "pilcrow/modules/physics/systems/Integration.h"
 #include "pilcrow/modules/physics/systems/Resolution.h"
 
+ArchetypeRef CreatePlayerArchetype(Simulation& Sim)
+{
+  ArchetypeRef player{ Sim.CreateArchetype("Hero") };
+  CModel& playerModel{ player.Add<CModel>("nanosuit.obj") };
+  float s = playerModel.model->GetScale();
+  auto transform = player.Add<Transform>();
+  transform.position = { 0.0f, 0.0f, 0.0f };
+  transform.rotation = { 0.f, 0.f, 0.f };
+  transform.scale = { s, s, s };
+
+  return player;
+}
+
+
+ArchetypeRef CreateEnemyArchetype(Simulation& Sim)
+{
+  ArchetypeRef enemy{ Sim.CreateArchetype("Nanosuit Character") };
+  enemy.Add<RigidBody>();
+  CModel& enemyModel{ enemy.Add<CModel>("nanosuit.obj") };
+
+  float s = 0.f;
+  s = enemyModel.model->GetScale();
+  enemy.Add<Transform>().scale = { s, s, s };
+  enemy.Get<Transform>().position = { 0.0f, 0.0f, 0.0f };
+  enemy.Get<Transform>().rotation = { 0.f, 0.f, 0.f };
+
+  return enemy;
+}
+
+
+
+ArchetypeRef CreateCameraArchetype(Simulation& Sim)
+{
+  ArchetypeRef lens{ Sim.CreateArchetype("Camera Lens") };
+  lens.Add<Camera>();
+  return lens;
+}
+
 void ECSDemo() {
   Simulation Sim;
   World &    TestWorld{Sim.CreateWorld("Test World")};
@@ -183,26 +223,22 @@ void ECSDemo() {
   TestWorld.AddSystem<Resolution>("Physics Resolution");
   TestWorld.AddSystem<RenderSystem>("Rendering System");
   //TestWorld.AddSystem<TransformPrinterSystem>("Printer System");
+  //TestWorld.AddSystem<PlayerSystem>("PlayerSystem");
 
-  ArchetypeRef enemy{Sim.CreateArchetype("Nanosuit Character")};
-  ArchetypeRef lens{Sim.CreateArchetype("Camera Lens")};
-  lens.Add<Camera>();
-  enemy.Add<RigidBody>();
-  CModel &cm{enemy.Add<CModel>("nanosuit.obj")};
+  auto playerArchetype = CreatePlayerArchetype(Sim);
 
-  float s                         = 0.f;
-  s                               = cm.model->GetScale();
-  enemy.Add<Transform>().scale    = {s, s, s};
-  enemy.Get<Transform>().position = {0.0f, 0.0f, -3.0f};
-  enemy.Get<Transform>().rotation = {0.f, 0.f, 0.f};
+  // Camera
+  auto cameraArchetype = CreateCameraArchetype(Sim);
 
-  EntityRef cam{TestWorld.Spawn(lens)};
-  cam.Get<Camera>().position = glm::vec3{0.f, 0.6f, -2.f};
-  cam.Get<Camera>().pitch    = -1.f;
-  cam.Get<Camera>().yaw      = -89.f;
-  EntityRef EnemyA{TestWorld.Spawn(enemy)};
+  EntityRef cam{ TestWorld.Spawn(cameraArchetype) };
+  cam.Get<Camera>().position = glm::vec3{ 0.f, 0.6f, -2.f };
+  cam.Get<Camera>().pitch = -1.f;
+  cam.Get<Camera>().yaw = -89.f;
 
-  // set SpawnNanos to false if you want higher FPS and less nanosuits
+  // Enemies
+  auto enemyArchetype = CreateEnemyArchetype(Sim);
+  EntityRef EnemyA{ TestWorld.Spawn(enemyArchetype) };
+
   std::vector<EntityRef> nanos;
   if(g_SpawnNanos) {
     float scalar = 1.f;  // differentiating scale
@@ -238,10 +274,10 @@ void ECSDemo() {
 
     // TODO(unknown): google test this
     // Model change testing
-    CModel bunny{"bunny.ply"};
-    s                               = bunny.model->GetScale();
-    nanos[1].Get<CModel>()          = bunny;
-    nanos[1].Get<Transform>().scale = {s, s, s};
+    //CModel bunny{"bunny.ply"};
+    //s                               = bunny.model->GetScale();
+    //nanos[1].Get<CModel>()          = bunny;
+    //nanos[1].Get<Transform>().scale = {s, s, s};
   }
 
   // Makes the Game exit on window close
