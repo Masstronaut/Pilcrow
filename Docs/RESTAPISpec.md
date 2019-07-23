@@ -16,7 +16,6 @@
 | :---------- | :-------- | :--- |
 | List all components on an entity | GET | /Worlds/\<**World**>/Entities/\<**ID**>/Components |
 | Read component by type | GET | /Worlds/\<**World**>/Entities/\<**ID**>/Components/\<**Type**> |
-| ID of the entity | GET | /Worlds/\<**World**>/Entities?Name=\<**Name**>|
 | Modify a component | PUT | /Worlds/\<**World**>/Entities/\<**ID**>/Components/\<**Component**> |
 | Modify a single value of a component | PATCH | /Worlds/\<**World**>/Entities/\<**ID**>/Components/\<**Component**>?Field=<**Field**> |
 | Change the name of an entity | PATCH | /Worlds/\<**World**>/Entities/\<**ID**> |
