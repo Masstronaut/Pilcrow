@@ -51,6 +51,8 @@ public:
     void    DeleteWorld(const std::string &world);
     void    WorldEntities(const std::string &world);
     void    WorldSystems(const std::string &world);
+    void    GetEntityComponents(const Entity *entity, EntityRef ER);
+    void    EntityComponents(EntityRef entity);
 
     void PatchWorldEntity(EntityRef entity);
 
