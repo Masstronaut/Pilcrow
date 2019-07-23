@@ -46,13 +46,27 @@ struct RenderSystem {
   }
 
   void PreProcess() {
+    unsigned int width = m_windowSize.x;
+    unsigned int height = m_windowSize.y;
+
+    if (0 == width)
+    {
+      width = 100;
+    }
+
+    if (0 == height)
+    {
+      height = 100;
+    }
+
     // set up projetion matrices
-    m_ortho_projection = glm::ortho(0.f, m_windowSize.x, 0.f, m_windowSize.y);
+    m_ortho_projection = glm::ortho(0.f, static_cast<float>(width), 0.f, static_cast<float>(height));
     if(camEntities.cbegin() != camEntities.cend()) {
       camera = &camEntities[0].Get<const Camera>();
       m_persp_projection
         = glm::perspective(glm::radians(camera->fov),
-                           m_windowSize.x / m_windowSize.y, camera->nearplane,
+                           static_cast<float>(width) / static_cast<float>(height), 
+                           camera->nearplane,
                            camera->farplane);
       program.SetUniform("projection", m_persp_projection);
       program.SetUniform("view", camera->View());
@@ -63,7 +77,6 @@ struct RenderSystem {
     if(!camera) return;
     glm::mat4 modelMatrix;
     modelMatrix = glm::translate(modelMatrix, tf.position);
-    modelMatrix = glm::scale(modelMatrix, tf.scale);
 
     modelMatrix
       = glm::rotate(modelMatrix, tf.rotation.x, glm::vec3(1.f, 0.f, 0.f));
@@ -71,6 +84,8 @@ struct RenderSystem {
       = glm::rotate(modelMatrix, tf.rotation.y, glm::vec3(0.f, 1.f, 0.f));
     modelMatrix
       = glm::rotate(modelMatrix, tf.rotation.z, glm::vec3(0.f, 0.f, 1.f));
+
+    modelMatrix = glm::scale(modelMatrix, tf.scale);
 
     program.SetUniform("model", modelMatrix);
 
@@ -93,7 +108,7 @@ struct RenderSystem {
 
     float position;
     gltr.Render("FPS: " + std::to_string(1.f / Dt),
-                {0.f, position = NextTextPos(m_windowSize.y)},
+                {0.f, position = NextTextPos(static_cast<float>(m_windowSize.y))},
                 m_ortho_projection, {.5f, .8f, .2f});
     gltr.Render("Camera Pos X: " + std::to_string(camera->position.x),
                 {0.f, position = NextTextPos(position)}, m_ortho_projection,
@@ -129,5 +144,5 @@ struct RenderSystem {
   const Camera *camera{nullptr};
 
   // TODO: Use events instead
-  glm::vec2 m_windowSize{g_InitialWindowWidth, g_InitialWindowHeight};
+  glm::uvec2 m_windowSize{g_InitialWindowWidth, g_InitialWindowHeight};
 };

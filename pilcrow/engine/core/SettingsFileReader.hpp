@@ -31,8 +31,8 @@ public:
 
     if(c == "screen_size") {
       // syntax: screen_size <width> <height>
-      g_InitialWindowWidth  = f[1];
-      g_InitialWindowHeight = f[2];
+      g_InitialWindowWidth = static_cast<unsigned int>(f[1]);
+      g_InitialWindowHeight = static_cast<unsigned int>(f[2]);
     } else if(c == "start_fullscreen") {
       // syntax: start_fullscreen <0 = no, 1 = yes>
       g_StartFullscreen = bool(f[1]);
