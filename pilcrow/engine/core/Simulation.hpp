@@ -13,6 +13,7 @@ public:
   void         Run(double timestep, const std::string &world);
   World &      CreateWorld(const std::string &name);
   World &      GetWorld(const std::string &name);
+  void         DeleteWorld(const std::string &name);
   ArchetypeRef CreateArchetype(const std::string &name = "Nameless Entity");
   std::vector<std::string> Worlds() const;
 private:

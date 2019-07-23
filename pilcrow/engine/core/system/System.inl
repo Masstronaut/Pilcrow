@@ -70,6 +70,11 @@ void System<T>::OnFrameEnd() {
 }
 
 template <typename T>
+inline const std::string &System<T>::Name() const {
+  return m_name;
+}
+
+template <typename T>
 template <typename U>
 typename std::enable_if_t<SystemTraits<U>::HasFrameStart>
 System<T>::FrameStart() {

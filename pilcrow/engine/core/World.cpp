@@ -33,6 +33,16 @@ void *World::GetComponent(EntityID component, std::type_index ComponentType) {
   return nullptr;
 }
 
+std::vector<std::pair<typename slot_map<Entity>::key_type, std::string>>
+World::GetEntities() const {
+  std::vector<std::pair<typename slot_map<Entity>::key_type, std::string>>
+    entities;
+  for (const auto& entity : m_Entities) {
+    entities.emplace_back(entity.ID(), entity.Name());
+  }
+  return entities;
+}
+
 Entity *World::GetEntity(EntityID ID) {
   auto it{m_Entities.find(ID)};
   if(it != m_Entities.end()) { return &(*it); }
@@ -47,11 +57,23 @@ EntityRef World::Spawn(ArchetypeRef archetype) {
   return Spawn(EntityRef{archetype.ID(), archetype.GetWorld()});
 }
 EntityRef World::Spawn(EntityRef archetype) {
-  std::string name{archetype.Name()};
-  EntityRef   ent{this->CreateEntity(name)};
+  EntityRef   ent{Spawn(archetype.Name())};
   archetype.m_World->m_Entities[archetype.ID()].Clone(*this,
                                                       m_Entities[ent.ID()]);
   return ent;
+}
+
+EntityRef World::Spawn(const std::string &name) { 
+  EntityRef entity{this->CreateEntity(name)};
+  return entity; 
+}
+
+std::vector<std::string> World::Systems() const {
+  std::vector<std::string> systems;
+  for (const auto& system : m_Systems) {
+    systems.push_back(system->Name());
+  }
+  return systems;
 }
 
 const std::string &World::Name() const { return m_Name; }

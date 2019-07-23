@@ -56,4 +56,7 @@ protected:
   EntityID m_ID{0, 0};
   World *  m_World;
 };
+
 #include "../entity/EntityRef.inl"
+
+

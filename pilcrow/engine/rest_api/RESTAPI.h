@@ -1,7 +1,10 @@
 #pragma once
 
+#include <vector>
+#include <string>
 #include <cpprest/asyncrt_utils.h>
 #include <cpprest/http_listener.h>
+#include <cpprest/json.h>
 
 class Simulation;
 class Entity;
@@ -22,15 +25,39 @@ public:
 
   class RequestHandler {
   public:
-    RequestHandler(World &world, web::http::http_request request);
+    RequestHandler(Simulation &sim, web::http::http_request request);
     void Handle();
-
+    web::json::value EntityRefJson(EntityRef entity);
   private:
+    static EntityID GetEntityID(const utility::string_t &token);
+    static std::vector<web::json::value>
+         VecToJsonArray(const std::vector<std::string> &vec);
+    void BadRequest();
+    void BadRequest(const std::string &response);
+
     Entity *GetEntity(const utility::string_t &name);
 
-    std::vector<utility::string_t> m_RequestPath;
+    void    Systems(const std::string &world = "");
+    void    GetSystems();
+
+    void    Components();
+
+    void    Worlds();
+    void    GetWorlds();
+    void    GetWorldSystems(const std::string &world);
+    void    GetWorldEntities(const std::string &world);
+    void    PostWorldEntities(const std::string &world);
+    void    PostWorld(const std::string &world);
+    void    DeleteWorld(const std::string &world);
+    void    WorldEntities(const std::string &world);
+    void    WorldSystems(const std::string &world);
+
+    void PatchWorldEntity(EntityRef entity);
+
+
     web::http::http_request        m_Request;
-    World &                        m_Simulation;
+    std::vector<utility::string_t> m_RequestPath;
+    Simulation &                   m_Simulation;
   };
 
 private:
@@ -39,3 +66,4 @@ private:
   web::http::experimental::listener::http_listener m_listener;
   Simulation &                                     m_simulation;
 };
+

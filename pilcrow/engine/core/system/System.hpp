@@ -11,22 +11,22 @@ class World;
 class SystemBase {
 public:
   virtual ~SystemBase() {}
-  virtual void AddSystem(World &world)  = 0;
-  virtual bool HasEntities() const      = 0;
-  virtual bool HasVoidUpdate() const    = 0;
-  virtual bool HasDtUpdate() const      = 0;
-  virtual bool HasFixedUpdate() const   = 0;
-  virtual bool HasEditorUpdate() const  = 0;
-  virtual bool HasFrameStart() const    = 0;
-  virtual bool HasFrameEnd() const      = 0;
-  virtual bool HasPreProcess() const    = 0;
-  virtual bool HasProcess() const       = 0;
-  virtual bool IsParallelSystem() const = 0;
-  virtual bool IsPureSystem() const     = 0;
-
-  virtual void OnFrameStart()     = 0;
-  virtual void OnFrameEnd()       = 0;
-  virtual void OnUpdate(float Dt) = 0;
+  virtual void               AddSystem(World &world)  = 0;
+  virtual bool               HasEntities() const      = 0;
+  virtual bool               HasVoidUpdate() const    = 0;
+  virtual bool               HasDtUpdate() const      = 0;
+  virtual bool               HasFixedUpdate() const   = 0;
+  virtual bool               HasEditorUpdate() const  = 0;
+  virtual bool               HasFrameStart() const    = 0;
+  virtual bool               HasFrameEnd() const      = 0;
+  virtual bool               HasPreProcess() const    = 0;
+  virtual bool               HasProcess() const       = 0;
+  virtual bool               IsParallelSystem() const = 0;
+  virtual bool               IsPureSystem() const     = 0;
+  virtual void               OnFrameStart()           = 0;
+  virtual void               OnFrameEnd()             = 0;
+  virtual void               OnUpdate(float Dt)       = 0;
+  virtual const std::string &Name() const             = 0;
 };
 
 namespace detail {
@@ -86,6 +86,7 @@ public:
   virtual void OnFrameStart() final;
   virtual void OnUpdate(float Dt) final;
   virtual void OnFrameEnd() final;
+  virtual const std::string &Name() const final;
 
 private:
   template <typename U = T>
@@ -147,9 +148,10 @@ private:
   void         RegisterEditorUpdate(World &world);
   void         RegisterParallelSystemProcess(World &world);
   T            instance;
-  std::string  m_name;
 
   detail::Storage<T> s;
+
+  std::string m_name;
 };
 
 #include "../system/System.inl"
