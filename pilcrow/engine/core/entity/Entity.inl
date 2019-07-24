@@ -20,10 +20,21 @@ Component &Entity::Add(Args &&... args) {
          && "An entity may only be associated "
             "with a single instance of each "
             "component type.");
-  EntityID compHandle{m_World.GetComponentPool<Component>().components.emplace(
-    std::forward<Args>(args)...)};
-  auto     it{m_Components.find(std::type_index(typeid(Component)))};
-  if(it != m_Components.end()) it->second = compHandle;
+  auto& componentPool = m_World.GetComponentPool<Component>();
+  EntityID compHandle = componentPool.components.emplace(std::forward<Args>(args)...);
+
+  auto typeIndex = std::type_index(typeid(Component));
+  auto     it{m_Components.find(typeIndex)};
+
+  if (it != m_Components.end())
+  {
+    it->second = compHandle;
+  }
+  else
+  {
+    m_Components.emplace(typeIndex, compHandle);
+  }
+
   return this->Get<Component>();
 }
 

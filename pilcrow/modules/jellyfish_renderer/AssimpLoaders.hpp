@@ -37,15 +37,6 @@ GLMesh Model::Assimp_ProcessMesh(aiMesh &mesh, const aiScene &scene) {
       vert.m_Position.x = mesh.mVertices[i].x;
       vert.m_Position.y = mesh.mVertices[i].y;
       vert.m_Position.z = mesh.mVertices[i].z;
-
-      // get min and max for model's bounding box
-      m_mn_vtx.x = glm::min(m_mn_vtx.x, mesh.mVertices[i].x);
-      m_mn_vtx.y = glm::min(m_mn_vtx.y, mesh.mVertices[i].y);
-      m_mn_vtx.z = glm::min(m_mn_vtx.z, mesh.mVertices[i].z);
-
-      m_mx_vtx.x = glm::max(m_mn_vtx.x, mesh.mVertices[i].x);
-      m_mx_vtx.y = glm::max(m_mn_vtx.y, mesh.mVertices[i].y);
-      m_mx_vtx.z = glm::max(m_mn_vtx.z, mesh.mVertices[i].z);
     }
     // Normals
     if(mesh.HasNormals()) {
@@ -154,12 +145,8 @@ bool Model::Assimp_LoadModelFromFile(const std::string &path,
     m_Meshes = &meshes;
 
     Assimp_ProcessNode(meshes, scene->mRootNode, scene);
-    m_scalefactor
-      = 1.0f
-        / glm::max(m_mx_vtx.x - m_mn_vtx.x,
-                   glm::max(m_mx_vtx.y - m_mn_vtx.y, m_mx_vtx.z - m_mn_vtx.z));
-    std::cout << "SUCCESS - Model Loaded: " << name
-              << "  with scalefactor: " << m_scalefactor << std::endl;
+
+    std::cout << "SUCCESS - Model Loaded: " << name << std::endl;
   }
 
   return true;

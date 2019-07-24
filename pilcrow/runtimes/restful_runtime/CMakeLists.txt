@@ -24,6 +24,7 @@ PRIVATE
   rest_api
   Utils
   engine
+  shmup
 
   #glad and stb_image are temporary libraries they are fully moved to graphics
   glad

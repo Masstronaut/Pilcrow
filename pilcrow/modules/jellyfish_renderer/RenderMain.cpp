@@ -5,5 +5,8 @@
 #include "pilcrow/modules/jellyfish_renderer/Jellyfish.h"
 
 namespace Jellyfish {
-void Derp::DoAThing() { std::cout << str << std::endl; }
+void Derp::DoAThing() 
+{ 
+  //std::cout << str << std::endl; 
+}
 }  // namespace Jellyfish

@@ -28,7 +28,7 @@ class iMesh {
 public:
   virtual ~iMesh() {}
 
-  virtual void Draw() const                    = 0;
+  virtual void Draw()                          = 0;
   virtual void AssignShader(GLProgram &shader) = 0;
 
 protected:

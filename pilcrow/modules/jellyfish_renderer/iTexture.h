@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pilcrow/modules/jellyfish_renderer/GL/DeviceResources.h"
+
 namespace Jellyfish {
 class iTexture {
 public:
@@ -18,7 +20,7 @@ public:
 
   virtual void        Use(int TextureUnit = 0) const = 0;
   virtual TextureType Type() const                   = 0;
-  virtual unsigned    ID() const                     = 0;
+  virtual Microsoft::WRL::ComPtr<ID3D12Resource> ID() const   = 0;
 
   // Loading functions are derived from the Resource class in the derived class
 

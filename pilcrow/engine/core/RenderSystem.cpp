@@ -69,13 +69,19 @@ void WindowManager::Init(World &world) {
 
   // Set callback functions
   pWindow->On(MouseCallback2);
+
+  m_world = &world;
 }
 
 void WindowManager::FrameStart() {
+  auto device           = GlobalDeviceResources.GetD3DDevice();
+  auto commandList      = GlobalDeviceResources.GetCommandList();
+  auto commandAllocator = GlobalDeviceResources.GetCommandAllocator();
+
   cam = &Entities[0].Get<Camera>();
   this->ProcessInput(*cam);
-  glClearColor(0.f, 0.f, 0.f, 1.f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  pWindow->FrameStart();
 }
 void WindowManager::FrameEnd() { pWindow->FrameEnd(); }
 
@@ -83,18 +89,48 @@ inline void WindowManager::ProcessInput(Camera &cam) {
   // TODO(unknown): fix camera
   float camSpeed{2.f * Dt};
 
-  std::vector<int> keyarray;
-  pWindow->PollInput(keyarray);
+  pWindow->PollInput(m_keyArray);
 
-  // This is bad, but I really don't want to have to make a system for modifier
-  // keys right now.
-  for (int i : keyarray) {
-    if (i == GLFW_KEY_LEFT_SHIFT || i == GLFW_KEY_RIGHT_SHIFT) {
-      camSpeed *= 10.f;
+  for (int gamepad = GLFW_JOYSTICK_1; gamepad < GLFW_JOYSTICK_16; ++gamepad)
+  {
+
+    if (glfwJoystickIsGamepad(gamepad))
+    {
+      GLFWgamepadstate state;
+
+      if (glfwGetGamepadState(gamepad, &state))
+      {
+        int i = 0;
+        for (auto button : state.buttons)
+        {
+          if (button)
+          {
+            GamepadButtonEvent event;
+            event.Gamepad = gamepad;
+            event.Button = i;
+
+            m_world->Emit(event);
+          }
+
+          ++i;
+        }
+      }
     }
   }
 
-  for(int i : keyarray) {
+  // This is bad, but I really don't want to have to make a system for modifier
+  // keys right now.
+  for (int i : m_keyArray) {
+    if (i == GLFW_KEY_LEFT_SHIFT || i == GLFW_KEY_RIGHT_SHIFT) {
+      camSpeed *= 10.f;
+    }
+    
+    KeyEvent event;
+    event.Key = i;
+    m_world->Emit(event);
+  }
+
+  for(int i : m_keyArray) {
     if(i == GLFW_KEY_ESCAPE) {
       pWindow->SetWindowState(Jellyfish::WindowState::closed);
     } else if(i == GLFW_KEY_1) {
@@ -112,10 +148,11 @@ inline void WindowManager::ProcessInput(Camera &cam) {
       cam.position -= cam.Right() * camSpeed;
     } else if(i == GLFW_KEY_D) {
       cam.position += cam.Right() * camSpeed;
-    } else if(i == GLFW_KEY_SPACE) {
-      cam.position += cam.up * camSpeed;
-    } else if(i == GLFW_KEY_C) {
-      cam.position -= cam.up * camSpeed;
-    }
+    } 
+    //else if(i == GLFW_KEY_SPACE) {
+    //  cam.position += cam.up * camSpeed;
+    //} else if(i == GLFW_KEY_C) {
+    //  cam.position -= cam.up * camSpeed;
+    //}
   }  // endfunc
 }

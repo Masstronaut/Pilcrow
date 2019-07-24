@@ -19,8 +19,6 @@ public:
 
   virtual ~iShader() {}
 
-  virtual unsigned Type() const = 0;
-  virtual unsigned ID() const   = 0;
   virtual void     Use() const  = 0;
 
   // planned functionality

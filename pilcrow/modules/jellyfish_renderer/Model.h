@@ -28,14 +28,17 @@ class iShader;
 class GLTexture;
 class GLMesh;
 
+struct Dimension
+{
+
+};
+
 class Model : public Resource {
 public:
   Model(const std::string &path);
   Model(const Model &model);
   ~Model();
-  void Draw() const;
-
-  float GetScale(void) { return m_scalefactor; }
+  void Draw();
 
   void AssignShaderToAllMeshes(GLProgram &shader);
 
@@ -63,11 +66,5 @@ private:
 
   // std::vector<std::shared_ptr<Texture>> LoadMaterialTextures( aiMaterial
   // *mat, aiTextureType type );
-
-  // uniform scalor of 1/boundingbox.max
-  float m_scalefactor{0.f};
-  // model space bounding box;
-  glm::vec4 m_mn_vtx{std::numeric_limits<float>::max()},
-    m_mx_vtx{-std::numeric_limits<float>::max()};
 };
 }  // namespace Jellyfish

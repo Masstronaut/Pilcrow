@@ -41,7 +41,7 @@ public:
   EntityRef     Spawn(EntityRef archetype);
 
   template <typename T, typename... Args>
-  void AddSystem(const std::string &name = "Nameless System", Args &&... args);
+  void AddSystem(const std::string& name = "Nameless System", Args&& ... args);
 
   template <typename... Args>
   ComponentAggregate &GetAggregate();
