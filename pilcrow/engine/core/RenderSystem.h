@@ -55,6 +55,7 @@ struct RenderSystem {
     });
 
     program.Load();
+    program.Use(true);
 
     // RENDERER LIB TEST
     Jellyfish::Derp test;
@@ -75,17 +76,21 @@ struct RenderSystem {
       height = 100;
     }
 
+    float fWidth = static_cast<float>(width);
+    float fHeight = static_cast<float>(height);
+
     // set up projetion matrices
-    m_ortho_projection = glm::ortho(0.f, static_cast<float>(width), 0.f, static_cast<float>(height));
+    m_ortho_projection = glm::ortho(0.f, fWidth, 0.f, fHeight);
     if(camEntities.cbegin() != camEntities.cend()) {
-      camera = &camEntities[0].Get<const Camera>();
-      m_persp_projection
-        = glm::perspective(glm::radians(camera->fov),
-                           static_cast<float>(width) / static_cast<float>(height), 
-                           camera->nearplane,
-                           camera->farplane);
-      program.SetUniform("projection", m_persp_projection);
-      program.SetUniform("view", camera->View());
+      camera             = &camEntities[0].Get<const Camera>();
+      m_persp_projection = glm::perspective(glm::radians(camera->fov),
+                                            fWidth / fHeight,
+                                            camera->nearplane,
+                                            camera->farplane);
+
+
+      program.SetProjection(m_persp_projection);
+      program.SetView(camera->View());
     }
   }
 
@@ -101,12 +106,16 @@ struct RenderSystem {
     modelMatrix
       = glm::rotate(modelMatrix, tf.rotation.z, glm::vec3(0.f, 0.f, 1.f));
 
-    modelMatrix = glm::scale(modelMatrix, tf.scale);
-
-    program.SetUniform("model", modelMatrix);
+    //modelMatrix = glm::scale(modelMatrix, tf.scale);
+    //
+    //program.SetUniform("model", modelMatrix);
+    program.SetModel(modelMatrix);
 
     model.model->AssignShaderToAllMeshes(program);
-    model.model->Draw();  // program no longer neede as arg textures TODO
+
+    model.model->Draw();  // program no longer needed as arg textures TODO
+
+    program.Use(false);
   }
 
   float NextTextPos(float prevPos) {

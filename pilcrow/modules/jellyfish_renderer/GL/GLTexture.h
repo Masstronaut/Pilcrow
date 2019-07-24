@@ -1,23 +1,24 @@
 #pragma once
 
-// GL
-#include <glad/include/glad.h>
+// D3D12
+#include "DeviceResources.h"
 
 // ours
 #include "Utils/Resource.hpp"
+#include "DeviceResources.h"
 
 #include "pilcrow/modules/jellyfish_renderer/iTexture.h"
 
 namespace Jellyfish {
 class GLTexture : public iTexture, public Resource {
 public:
-  GLTexture(const std::string &name);
+  GLTexture(const std::string &                   name);
   ~GLTexture();
 
   // Overriding iTexture:
   void        Use(int TextureUnit = 0) const override;
   TextureType Type() const override;
-  unsigned    ID() const override;
+  Microsoft::WRL::ComPtr<ID3D12Resource> ID() const override;
 
   // Overriding Resource:
   virtual bool        Reloadable() const override;
@@ -26,15 +27,14 @@ public:
   GLTexture &Type(TextureType type);
 
 private:
+  Microsoft::WRL::ComPtr<ID3D12Resource> m_textureResource;
+  DXGI_FORMAT                            m_Format;
+
   // Overriding Resource:
   bool LoadImpl() final;
   void UnloadImpl() final;
 
-  GLint TextureFromData();
-
-  GLuint m_GLuID{};
-  GLenum m_Format{};
-
+  bool TextureFromData();
 };  // class GLTexture
 
 }  // namespace Jellyfish

@@ -1,5 +1,13 @@
 target_sources(jellyfish_renderer
 PRIVATE
+    d3dx12.h
+    DescriptorHeap.cpp
+    DescriptorHeap.h
+    DeviceResources.cpp
+    DeviceResources.h
+    GeneralDX12.h
+    GlobalD3DResources.cpp
+    GlobalD3DResources.h
     GLWindow.cpp
     GLWindow.h
     GLMesh.cpp

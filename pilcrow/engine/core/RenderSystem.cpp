@@ -74,10 +74,14 @@ void WindowManager::Init(World &world) {
 }
 
 void WindowManager::FrameStart() {
+  auto device           = GlobalDeviceResources.GetD3DDevice();
+  auto commandList      = GlobalDeviceResources.GetCommandList();
+  auto commandAllocator = GlobalDeviceResources.GetCommandAllocator();
+
   cam = &Entities[0].Get<Camera>();
   this->ProcessInput(*cam);
-  glClearColor(0.25f, 0.25f, 0.25f, 1.f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  pWindow->FrameStart();
 }
 void WindowManager::FrameEnd() { pWindow->FrameEnd(); }
 

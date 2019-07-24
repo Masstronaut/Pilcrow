@@ -18,7 +18,9 @@ std::string FontPath() { return std::string(g_ResourcePath) + "Fonts/"; }
 const GLText::Character &GLText::Get(char c) const { return m_Glyphs[c - ' ']; }
 
 GLText::GLText(const std::string &shader, const std::string &font, int size)
-  : m_Shader(shader), m_Size(size) {
+  /*: m_Shader(shader), m_Size(size)*/
+{
+  /*
   if(FT_Init_FreeType(&m_FT) != 0) {
     std::cout << "ERROR: Failed to initialize FreeType Library." << std::endl;
   }
@@ -59,7 +61,7 @@ GLText::GLText(const std::string &shader, const std::string &font, int size)
 
   FT_Done_Face(m_Font);
   FT_Done_FreeType(m_FT);
-
+  /*
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);
   glBindVertexArray(VAO);
@@ -69,14 +71,15 @@ GLText::GLText(const std::string &shader, const std::string &font, int size)
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), nullptr);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
+  glBindVertexArray(0);*/
 }
 
 void GLText::Render(const std::string &text, glm::vec2 position, glm::mat4 proj,
                     glm::vec3 color, float scale) {
+  /*
   m_Shader.Use();
-  m_Shader.SetUniform("projection", proj);
-  m_Shader.SetUniform("textColor", color);
+  m_Shader.SetProjection(proj);
+  //m_Shader.SetUniform("textColor", color);
   glActiveTexture(GL_TEXTURE0);
   glBindVertexArray(VAO);
 
@@ -110,7 +113,7 @@ void GLText::Render(const std::string &text, glm::vec2 position, glm::mat4 proj,
   }
 
   glBindVertexArray(0);
-  glBindTexture(GL_TEXTURE_2D, 0);
+  glBindTexture(GL_TEXTURE_2D, 0);*/
 }
 
 }  // end namespace Jellyfish

@@ -1,4 +1,7 @@
 #pragma once
+#define GLM_FORCE_LEFT_HANDED
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -14,10 +17,22 @@ public:
   float     farplane{100.f};
   glm::mat4 LookAt(glm::vec3 target) {
     glm::vec3 right{Right()};
-    return glm::mat4{right.x,    right.y,    right.z,    0,
-                     up.x,       up.y,       up.z,       0,
-                     target.x,   target.y,   target.z,   0,
-                     position.x, position.y, position.z, 1.f};
+    return glm::mat4{right.x,
+                     right.y,
+                     right.z,
+                     0,
+                     up.x,
+                     up.y,
+                     up.z,
+                     0,
+                     target.x,
+                     target.y,
+                     target.z,
+                     0,
+                     position.x,
+                     position.y,
+                     position.z,
+                     1.f};
   }
   glm::vec3 Front() const {
     return glm::normalize(
