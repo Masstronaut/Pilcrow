@@ -183,7 +183,7 @@ void GLWindow::FrameStart() {
     GlobalDeviceResources.Prepare();
 
     {
-      FLOAT black[] = {0.f, 0.f, 0.f, 1.f};
+      FLOAT black[] = {0.15f, 0.15f, 0.50f, 1.f};
       commandList
         ->ClearRenderTargetView(GlobalDeviceResources.GetRenderTargetView(),
                                 black,

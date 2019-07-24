@@ -106,8 +106,8 @@ struct RenderSystem {
     modelMatrix
       = glm::rotate(modelMatrix, tf.rotation.z, glm::vec3(0.f, 0.f, 1.f));
 
-    //modelMatrix = glm::scale(modelMatrix, tf.scale);
-    //
+    modelMatrix = glm::scale(modelMatrix, tf.scale);
+    
     //program.SetUniform("model", modelMatrix);
     program.SetModel(modelMatrix);
 
