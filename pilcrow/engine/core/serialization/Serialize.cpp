@@ -140,16 +140,11 @@ inline glm::vec4 ValueAsReal4(web::json::value* aValue)
 
 inline void Real4AsValue(web::json::value& aValue, glm::vec4 aVector)
 {
-  //aValue.SetObject();
-  //
-  //RSValue subObject;
-  //subObject.SetObject();
-  //subObject.AddMember("x", FloatAsValue(aVector.x, aAllocator), aAllocator);
-  //subObject.AddMember("y", FloatAsValue(aVector.y, aAllocator), aAllocator);
-  //subObject.AddMember("z", FloatAsValue(aVector.z, aAllocator), aAllocator);
-  //subObject.AddMember("w", FloatAsValue(aVector.w, aAllocator), aAllocator);
-  //
-  //aValue.AddMember("Vector4", subObject, aAllocator);
+  aValue = web::json::value::object();
+  aValue[U("x")]    = web::json::value::number(aVector.x);
+  aValue[U("y")]    = web::json::value::number(aVector.y);
+  aValue[U("z")]    = web::json::value::number(aVector.z);
+  aValue[U("w")]    = web::json::value::number(aVector.w);
 }
 
 ///////////////////////////////
@@ -184,54 +179,34 @@ void Deserialize(void* aObject, srefl::Type* aType)
 
 }
 
-void Serialize(void* aObject, srefl::OrderedMultiMap<std::string, std::unique_ptr<srefl::Property>>& aMap)
+void Serialize(void* aObject, srefl::OrderedMultiMap<std::string, std::unique_ptr<srefl::Property>>& aMap, web::json::value &blob)
 {
   for (auto const& [name, property] : aMap)
   {
     auto& propertyName = property->GetName();
 
-    // If the bound field/property does not have the Property Attribute, do nothing.
-    if (!property->GetAttribute<Serializable>())
-    {
-      continue;
-    }
-
-    if (auto redirectAttribute = property->GetAttribute<RedirectObject>();
-      nullptr != redirectAttribute)
-    {
-      auto object = redirectAttribute->Serialize(aAllocator, aSelf);
-
-      RSValue propName;
-      propName.SetString(redirectAttribute->GetName().c_str(),
-        static_cast<RSSizeType>(redirectAttribute->GetName().size()),
-        aAllocator);
-
-      aValue.AddMember(propName, object, aAllocator);
-      continue;
-    }
-
     // Set up the get so we can serialize its value.
     auto getter = property->GetGetter();
-    auto any = getter->Invoke(aSelf);
+    auto any = getter->Invoke(aObject);
     auto propertyType = getter->GetReturnType()->GetMostBasicType();
 
-    RSValue propertyValue;
+    web::json::value propertyValue;
 
     // Type is a float
-    if (propertyType == TypeId<float>())
+    if (propertyType == srefl::TypeId<float>())
     {
       auto value = any.As<float>();
-      FloatAsValue(propertyValue, value, aAllocator);
+      FloatAsValue(propertyValue, value);
     }
-    else if (propertyType == TypeId<double>())
+    else if (propertyType == srefl::TypeId<double>())
     {
       auto value = any.As<double>();
-      DoubleAsValue(propertyValue, value, aAllocator);
+      DoubleAsValue(propertyValue, value);
     }
     else if (propertyType->GetEnumOf())
     {
       // TODO (Josh): Fix Enums
-      debugbreak();
+      __debugbreak();
       //Call call(property->Get, aState);
       //call.SetHandle(This, aSelf);
       //call.Invoke(reportForEnum);
@@ -241,69 +216,63 @@ void Serialize(void* aObject, srefl::OrderedMultiMap<std::string, std::unique_pt
       //aBuilder.Value(enumAsStr);
     }
     // Type is an int.
-    else if (propertyType == TypeId<u32>())
+    else if (propertyType == srefl::TypeId<std::uint32_t>())
     {
-      propertyValue.SetUint(any.As<u32>());
+      propertyValue = web::json::value::number(any.As<std::uint32_t>());
     }
-    else if (propertyType == TypeId<u64>())
+    else if (propertyType == srefl::TypeId<std::uint64_t>())
     {
-      propertyValue.SetUint64(any.As<u64>());
+      propertyValue = web::json::value::number(any.As<std::uint64_t>());
     }
-    else if (propertyType == TypeId<i64>())
+    else if (propertyType == srefl::TypeId<std::int64_t>())
     {
-      propertyValue.SetInt64(any.As<i64>());
+      propertyValue = web::json::value::number(any.As<std::int64_t>());
     }
-    else if (propertyType == TypeId<i32>())
+    else if (propertyType == srefl::TypeId<std::int32_t>())
     {
-      propertyValue.SetInt(any.As<i32>());
+      propertyValue = web::json::value::number(any.As<std::int32_t>());
     }
     // Type is a string.
-    else if (propertyType == TypeId<String>())
-    {
-      auto& value = any.As<String>();
-      propertyValue.SetString(value.c_str(), static_cast<RSSizeType>(value.Size()), aAllocator);
-    }
-    else if (propertyType == TypeId<std::string>())
+    else if (propertyType == srefl::TypeId<std::string>())
     {
       auto& value = any.As<std::string>();
-      propertyValue.SetString(value.c_str(), static_cast<RSSizeType>(value.size()), aAllocator);
+      propertyValue = web::json::value::string(
+        utility::string_t(value.begin(), value.end()));
     }
     // Type is a Boolean.
-    else if (propertyType == TypeId<bool>())
+    else if(propertyType == srefl::TypeId<bool>())
     {
-      propertyValue.SetBool(any.As<bool>());
+      propertyValue = web::json::value::boolean(any.As<bool>());
     }
     // Type is a Real2.
-    else if (propertyType == TypeId<glm::vec2>())
+    else if(propertyType == srefl::TypeId<glm::vec2>())
     {
       auto value = any.As<glm::vec2>();
-      Real2AsValue(propertyValue, value, aAllocator);
+      Real2AsValue(propertyValue, value);
     }
     // Type is a Real3.
-    else if (propertyType == TypeId<glm::vec3>())
+    else if(propertyType == srefl::TypeId<glm::vec3>())
     {
       auto value = any.As<glm::vec3>();
-      Real3AsValue(propertyValue, value, aAllocator);
+      Real3AsValue(propertyValue, value);
     }
     // Type is a Real4.
-    else if (propertyType == TypeId<glm::vec4>())
+    else if(propertyType == srefl::TypeId<glm::vec4>())
     {
       auto value = any.As<glm::vec4>();
-      Real4AsValue(propertyValue, value, aAllocator);
+      Real4AsValue(propertyValue, value);
     }
     // Type is a Quaternion.
-    else if (propertyType == TypeId<glm::quat>())
+    else if(propertyType == srefl::TypeId<glm::quat>())
     {
       auto value = any.As<glm::quat>();
-      QuaternionAsValue(propertyValue, value, aAllocator);
+      QuaternionAsValue(propertyValue, value);
     }
 
-    RSValue propertyNameValue;
-    propertyNameValue.SetString(propertyName.c_str(),
-      static_cast<RSSizeType>(propertyName.size()),
-      aAllocator);
+    utility::string_t propertyNameValue{
+      utility::string_t(propertyName.begin(), propertyName.end())};
 
-    aValue.AddMember(propertyNameValue, propertyValue, aAllocator);
+    blob[propertyNameValue] = propertyValue;
   }
 }
 
