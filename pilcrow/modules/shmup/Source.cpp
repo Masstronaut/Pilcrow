@@ -8,6 +8,8 @@
 #include "pilcrow/engine/core/Simulation.hpp"
 #include "pilcrow/engine/core/World.hpp"
 
+#include "pilcrow/modules/physics/components/CircleCollider.h"
+
 #include "pilcrow/modules/shmup/Source.hpp"
 
 
@@ -163,15 +165,14 @@ void PlayerSystem::PostProcess()
 
   for (auto& bulletToCreate : mBulletsToSpawn)
   {
-    auto& bulletEntity = mWorld.Spawn(mBulletArchetype);
-
-    //auto& bullet = bulletEntity.Get<Bullet>();
-    //bullet.mLife = 4.0f;
-
-    auto& bulletTransform = bulletEntity.Get<Transform>();
+    auto& bullet = mWorld.Spawn(mBulletArchetype);
+    auto& bulletTransform = bullet.Get<Transform>();
+    auto &collider           = bullet.Get<CircleCollider>();
     bulletTransform.scale = bulletToCreate.scale;
     bulletTransform.position = bulletToCreate.translation;
     bulletTransform.rotation = { 0.f, 0.f, glm::radians(-90.f) };
+    collider.Group           = CollisionGroup::bullet;
+    collider.Radius          = bulletTransform.scale.x;
   }
 
   mBulletsToSpawn.clear();
@@ -253,13 +254,17 @@ void EnemySystem::PreProcess()
     for (int i = 0; i < toSpawn; ++i)
     {
       auto& enemy = mWorld.Spawn(mEnemyArchetype);
-      auto s = 0.0722623 * 0.40f;
+      auto& model = enemy.Get<CModel>();
+      auto &collider = enemy.Get<CircleCollider>();
+      auto s = model.model->GetScale() * 0.40f;
 
       auto& transform = enemy.Get<Transform>();
       transform.position.x = 4;
       transform.position.y = RandomFloatBetweenZeroAndOne() * 1.5f  * PositiveOrNegativeOne();
       transform.scale = { s,s,s };
       transform.rotation = { 0.f, 0.f, glm::radians(90.f) };
+      collider.Group     = CollisionGroup::enemy;
+      collider.Radius    = s;
     }
   }
 }

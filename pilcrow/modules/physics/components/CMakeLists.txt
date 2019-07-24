@@ -4,4 +4,6 @@ PRIVATE
     Body.h
     Manifold.cpp
     Manifold.h
+    CircleCollider.cpp
+    CircleCollider.h
 )
