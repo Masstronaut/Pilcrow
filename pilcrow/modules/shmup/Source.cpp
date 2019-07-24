@@ -97,7 +97,6 @@ void PlayerSystem::Process(Player const &aPlayer, Transform &aTransform) const {
   if(mFiring[aPlayer.mController]
      && (mFiringCooldown[aPlayer.mController] <= 0.f)) {
     BulletSpecification bullet;
-    bullet.scale = { 1.f, 1.f, 1.f };
     bullet.scale = glm::vec3{ 0.0722623, 0.0722623, 0.0722623 } * 0.25f;
 
     bullet.translation = aTransform.position;
@@ -125,8 +124,9 @@ void PlayerSystem::PostProcess() {
     bulletTransform.scale    = bulletToCreate.scale;
     bulletTransform.position = bulletToCreate.translation;
     bulletTransform.rotation = {0.f, 0.f, glm::radians(-90.f)};
+    collider.Radius          = bulletToCreate.scale.x;
     collider.Group           = CollisionGroup::bullet;
-    collider.Radius         *= 3;
+    collider.Radius         *= 5;
   }
 
   mBulletsToSpawn.clear();
@@ -205,7 +205,9 @@ void EnemySystem::PreProcess() {
       auto &enemy    = mWorld.Spawn(mEnemyArchetype);
       auto &model    = enemy.Get<CModel>();
       auto &collider = enemy.Get<CircleCollider>();
-      auto  s        = glm::vec3{ 0.0722623f, 0.0722623f, 0.0722623f } * 0.40f;
+      
+      auto radius = 0.0722623f * 0.40f;
+      auto  s        = glm::vec3{ radius, radius, radius };
 
       auto &transform      = enemy.Get<Transform>();
       transform.position.x = 4;
@@ -214,7 +216,7 @@ void EnemySystem::PreProcess() {
       transform.scale    = s;
       transform.rotation = {0.f, 0.f, glm::radians(90.f)};
       collider.Group     = CollisionGroup::enemy;
-      //collider.Radius    = s;
+      collider.Radius    = radius;
     }
   }
 }
