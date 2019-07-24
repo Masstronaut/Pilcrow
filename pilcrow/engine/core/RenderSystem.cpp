@@ -76,7 +76,7 @@ void WindowManager::Init(World &world) {
 void WindowManager::FrameStart() {
   cam = &Entities[0].Get<Camera>();
   this->ProcessInput(*cam);
-  glClearColor(0.f, 0.f, 0.f, 1.f);
+  glClearColor(0.25f, 0.25f, 0.25f, 1.f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 void WindowManager::FrameEnd() { pWindow->FrameEnd(); }
@@ -117,10 +117,11 @@ inline void WindowManager::ProcessInput(Camera &cam) {
       cam.position -= cam.Right() * camSpeed;
     } else if(i == GLFW_KEY_D) {
       cam.position += cam.Right() * camSpeed;
-    } else if(i == GLFW_KEY_SPACE) {
-      cam.position += cam.up * camSpeed;
-    } else if(i == GLFW_KEY_C) {
-      cam.position -= cam.up * camSpeed;
-    }
+    } 
+    //else if(i == GLFW_KEY_SPACE) {
+    //  cam.position += cam.up * camSpeed;
+    //} else if(i == GLFW_KEY_C) {
+    //  cam.position -= cam.up * camSpeed;
+    //}
   }  // endfunc
 }

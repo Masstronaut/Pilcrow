@@ -28,6 +28,11 @@ class iShader;
 class GLTexture;
 class GLMesh;
 
+struct Dimension
+{
+
+};
+
 class Model : public Resource {
 public:
   Model(const std::string &path);

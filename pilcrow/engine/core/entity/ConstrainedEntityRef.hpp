@@ -20,6 +20,12 @@ public:
   void Invoke(Predicate &&p);
   template <typename ReturnType, typename Class>
   void Invoke(ReturnType (Class::*Fn)(Args...) const, const Class &c);
+  
+  EntityRef GetEntity()
+  {
+    return m_Self;
+  }
+
 
 private:
   EntityRef m_Self;
