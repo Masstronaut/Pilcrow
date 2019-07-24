@@ -53,6 +53,7 @@ public:
   PlayerSystem(World& aWorld, ArchetypeRef mBulletArchetype);
 
   void OnKeyEvent(KeyEvent const& aKeyEvent);
+  void OnGamepadButtonEvent(GamepadButtonEvent const& aKeyEvent);
 
   void PreProcess();
   void Update();
@@ -94,3 +95,5 @@ public:
   EntitiesWith<Enemy, Transform> Entities;
   float Dt;
 };
+
+

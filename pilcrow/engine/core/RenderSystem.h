@@ -38,6 +38,12 @@ struct KeyEvent
   int Key;
 };
 
+struct GamepadButtonEvent
+{
+  int Gamepad;
+  int Button;
+};
+
 struct RenderSystem {
   void Init(World &world) {
     // Register for Type Lists

@@ -23,6 +23,11 @@ PlayerSystem::PlayerSystem(World& aWorld, ArchetypeRef aBulletArchetype)
       OnKeyEvent(aKeyEvent);
     });
 
+  aWorld.On([this](GamepadButtonEvent const& aKeyEvent)
+    {
+      OnGamepadButtonEvent(aKeyEvent);
+    });
+
   for (auto& direction : mDirection)
   {
     direction = { 0.0f, 0.0f, 0.0f };
@@ -60,6 +65,32 @@ void PlayerSystem::OnKeyEvent(KeyEvent const& aKeyEvent)
     direction.x += 2.f;
   }
   else if (aKeyEvent.Key == GLFW_KEY_ENTER)
+  {
+    mFiring[0] = true;
+  }
+}
+
+void PlayerSystem::OnGamepadButtonEvent(GamepadButtonEvent const& aButtonEvent)
+{
+  auto& direction = mDirection[0];
+
+  if (aButtonEvent.Button == GLFW_GAMEPAD_BUTTON_DPAD_UP)
+  {
+    direction.y += 2.f;
+  }
+  else if (aButtonEvent.Button == GLFW_GAMEPAD_BUTTON_DPAD_DOWN)
+  {
+    direction.y -= 2.f;
+  }
+  else if (aButtonEvent.Button == GLFW_GAMEPAD_BUTTON_DPAD_LEFT)
+  {
+    direction.x -= 2.f;
+  }
+  else if (aButtonEvent.Button == GLFW_GAMEPAD_BUTTON_DPAD_RIGHT)
+  {
+    direction.x += 2.f;
+  }
+  else if (aButtonEvent.Button == GLFW_GAMEPAD_BUTTON_A)
   {
     mFiring[0] = true;
   }

@@ -87,6 +87,33 @@ inline void WindowManager::ProcessInput(Camera &cam) {
 
   pWindow->PollInput(m_keyArray);
 
+  for (int gamepad = GLFW_JOYSTICK_1; gamepad < GLFW_JOYSTICK_16; ++gamepad)
+  {
+
+    if (glfwJoystickIsGamepad(gamepad))
+    {
+      GLFWgamepadstate state;
+
+      if (glfwGetGamepadState(gamepad, &state))
+      {
+        int i = 0;
+        for (auto button : state.buttons)
+        {
+          if (button)
+          {
+            GamepadButtonEvent event;
+            event.Gamepad = gamepad;
+            event.Button = i;
+
+            m_world->Emit(event);
+          }
+
+          ++i;
+        }
+      }
+    }
+  }
+
   // This is bad, but I really don't want to have to make a system for modifier
   // keys right now.
   for (int i : m_keyArray) {
