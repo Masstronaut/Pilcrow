@@ -40,8 +40,6 @@ public:
   ~Model();
   void Draw();
 
-  float GetScale(void) { return m_scalefactor; }
-
   void AssignShaderToAllMeshes(GLProgram &shader);
 
 private:
@@ -68,11 +66,5 @@ private:
 
   // std::vector<std::shared_ptr<Texture>> LoadMaterialTextures( aiMaterial
   // *mat, aiTextureType type );
-
-  // uniform scalor of 1/boundingbox.max
-  float m_scalefactor{0.f};
-  // model space bounding box;
-  glm::vec4 m_mn_vtx{std::numeric_limits<float>::max()},
-    m_mx_vtx{-std::numeric_limits<float>::max()};
 };
 }  // namespace Jellyfish

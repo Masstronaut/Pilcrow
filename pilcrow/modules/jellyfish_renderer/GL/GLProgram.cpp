@@ -196,6 +196,7 @@ bool GLProgram::LoadImpl() {
     psoDesc.InputLayout                        = {layout, _countof(layout)};
     psoDesc.pRootSignature                     = GlobalRootSignature.Get();
     psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+    psoDesc.RasterizerState.FrontCounterClockwise = TRUE;
     psoDesc.BlendState      = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
     psoDesc.DepthStencilState.DepthEnable   = FALSE;
     psoDesc.DepthStencilState.StencilEnable = FALSE;

@@ -79,7 +79,7 @@ ArchetypeRef CreatePlayerArchetype(Simulation& Sim)
   auto& playerComponent = player.Add<Player>();
   playerComponent.mController = 0;
 
-  float s = playerModel.model->GetScale();
+  float s = 0.0722623;
   auto& transform = player.Add<Transform>();
   transform.position = { -2.75f, 0.0f, 0.0f };
   transform.rotation = { 0.f, 0.f, glm::radians(-90.f) };
@@ -90,17 +90,18 @@ ArchetypeRef CreatePlayerArchetype(Simulation& Sim)
 
 ArchetypeRef CreateBulletArchetype(Simulation& aSimulation)
 {
-  auto player = aSimulation.CreateArchetype("Bullet");
-  auto& playerModel = player.Add<CModel>("nanosuit.obj");
-  player.Add<Bullet>();
+  auto bullet = aSimulation.CreateArchetype("Bullet");
+  //auto& bulletModel = bullet.Add<CModel>("bunny.ply");
+  auto& bulletModel = bullet.Add<CModel>("nanosuit.obj");
+  bullet.Add<Bullet>();
 
-  float s = playerModel.model->GetScale();
-  auto& transform = player.Add<Transform>();
+  float s = 1.f;
+  auto& transform = bullet.Add<Transform>();
   transform.position = { 0.0f, 0.0f, 0.0f };
   transform.rotation = { 0.f, 0.f, glm::radians(-90.f) };
-  transform.scale = { s, s, s };
+  transform.scale = { 1.0f, 1.0f, 1.0f };
 
-  return player;
+  return bullet;
 }
 
 ArchetypeRef CreateEnemyArchetype(Simulation& Sim)
@@ -109,9 +110,8 @@ ArchetypeRef CreateEnemyArchetype(Simulation& Sim)
   auto& enemyModel = enemy.Add<CModel>("nanosuit.obj");
   enemy.Add<Enemy>();
 
-  float s = 0.f;
+  float s = 0.0722623;
 
-  s = enemyModel.model->GetScale();
   auto& transform = enemy.Add<Transform>();
   transform.scale = { s, s, s };
   transform.position = { 0.0f, 0.0f, 0.0f };
