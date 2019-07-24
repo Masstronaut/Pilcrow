@@ -29,20 +29,19 @@ public:
 
 private:
   struct Character {
-    GLuint     TextureID;  // ID handle for the glyph texture
+    //GLuint     TextureID;  // ID handle for the glyph texture
     glm::ivec2 Size;       // Size of glyph
     glm::ivec2 Bearing;    // Offset from baseline to left/top of glyph
-    GLuint     Advance;    // Offset to advance to next glyph
+    //GLuint     Advance;    // Offset to advance to next glyph
   };
 
   const Character &Get(char c) const;
 
-  GLProgram              m_Shader;
+  //GLProgram              m_Shader;
   FT_Library             m_FT{};
   FT_Face                m_Font{};
   int                    m_Size;
   std::vector<Character> m_Glyphs;
-  GLuint                 VAO{0}, VBO{0};
 };
 
 }  // namespace Jellyfish

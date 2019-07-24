@@ -3,10 +3,13 @@
 // ours
 #include "pilcrow/modules/jellyfish_renderer/iWindow.h"  //base class
 
+// D3D12
+#include "DeviceResources.h"
+
 struct GLFWwindow;
 
 namespace Jellyfish {
-class GLWindow : public iWindow {
+class GLWindow : public iWindow, public DX::IDeviceNotify {
 public:
   GLWindow();
   ~GLWindow();
@@ -29,6 +32,7 @@ public:
   void PollEvents();
   void PollInput(std::vector<int> &keyarray);
 
+  void FrameStart();
   void FrameEnd();
 
   void ResizeWindow(unsigned width, unsigned height);
@@ -44,9 +48,14 @@ private:
   static void Callback_MouseButton(GLFWwindow *window, int button, int action,
                                    int mods);
 
+  void OnDeviceLost();
+  void OnDeviceRestored();
+
   std::string m_Title{""};
   glm::uvec2  m_Size{100, 100};
   WindowState m_State{WindowState::restored};
+
+  bool inRender;
 
   GLFWwindow *m_WindowHandle{nullptr};
 };

@@ -32,7 +32,7 @@ Model::Model(const Model &model) : Resource(model) { Load(); }
 
 Model::~Model() = default;
 
-void Model::Draw() const {
+void Model::Draw() {
   // iMesh is abstract type, cannot use Draw() directly unless cast to real type
   for(auto &mesh : m_Meshes) {
     mesh.Draw();

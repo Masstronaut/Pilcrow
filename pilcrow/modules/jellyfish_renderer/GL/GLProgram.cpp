@@ -5,12 +5,6 @@
 #include <unordered_map>
 #include <vector>
 
-// glad MUST be included before other GL headers
-#include <glad/include/glad.h>
-
-// GL
-#include <GL/glu.h>
-
 // GLM
 #include "pilcrow/engine/core/ReflectedGlm.hpp"
 
@@ -26,20 +20,6 @@ GLProgram::GLProgram(const std::string &name) : Resource(name), m_ProgramID(0) {
 
 GLProgram::~GLProgram() { this->Unload(); }
 
-int GLProgram::ErrorCheck() {
-  GLenum         errCode;
-  const GLubyte *errString;
-  if((errCode = glGetError()) != GL_NO_ERROR) {
-    errString = gluErrorString(errCode);
-    std::cout << "An error has occurred: " << errString;
-    std::cout << " -- With shader program: " << this->Name()
-              << " -- Type: " << this->Extension() << std::endl;
-    return -1;
-  }
-  return 0;
-  //__debugbreak( );
-}
-
 bool GLProgram::Reloadable() const { return true; }
 
 std::string GLProgram::Directory() const { return ShaderPath(); }
@@ -47,120 +27,189 @@ std::string GLProgram::Directory() const { return ShaderPath(); }
 unsigned GLProgram::ID() const { return m_ProgramID; }
 
 void GLProgram::Use(bool use) const {
+  auto device           = GlobalDeviceResources.GetD3DDevice();
+  auto commandList      = GlobalDeviceResources.GetCommandList();
+  auto commandAllocator = GlobalDeviceResources.GetCommandAllocator();
+
   if(use) {
-    glUseProgram(this->ID());
+    if(GlobalPipelineState != m_pipelineState) {
+      GlobalPipelineState = m_pipelineState;
+
+      commandList->SetPipelineState(GlobalPipelineState.Get());
+      SetupHeap();
+    }
   } else {
-    glUseProgram(0);
+    GlobalPipelineState = nullptr;
   }
 }
 
-bool GLProgram::SetUniform(const std::string &name, float x, float y, float z,
-                           float w) {
-  const ShaderVariable *var{this->GetVariable(name)};
-  if(var != nullptr) {
-    // this->Use( );
-    glUniform4f(var->location, x, y, z, w);
-    return true;
-  }
-  WarnUniform(name);
-  return false;
+void GLProgram::SetModel(glm::mat4 mat) {
+  dirty = true;
+  model = mat;
 }
 
-bool GLProgram::SetUniform(const std::string &name, const glm::vec3 &vec) {
-  const ShaderVariable *var{this->GetVariable(name)};
-  if(var != nullptr) {
-    this->Use();
-    glUniform3f(var->location, vec.x, vec.y, vec.z);
-    return true;
-  }
-  WarnUniform(name);
-  return false;
+void GLProgram::SetView(glm::mat4 mat) {
+  dirty = true;
+  view  = mat;
 }
 
-bool GLProgram::SetUniform(const std::string &name, const glm::vec4 &vec) {
-  const ShaderVariable *var{this->GetVariable(name)};
-  if(var != nullptr) {
-    this->Use();
-    glUniform4f(var->location, vec.x, vec.y, vec.z, vec.w);
-    return true;
-  }
-  WarnUniform(name);
-  return false;
+void GLProgram::SetProjection(glm::mat4 mat) {
+  dirty = true;
+  proj  = mat;
 }
 
-bool GLProgram::SetUniform(const std::string &name, float val) {
-  const ShaderVariable *var{this->GetVariable(name)};
-  if(var != nullptr) {
-    this->Use();
-    glUniform1f(var->location, val);
-    return true;
-  }
-  WarnUniform(name);
-  return false;
-}
+void GLProgram::UpdateCB() {
+  if(!dirty) { return; }
 
-bool GLProgram::SetUniform(const std::string &name, int val) {
-  const ShaderVariable *var{this->GetVariable(name)};
-  if(var != nullptr) {
-    this->Use();
-    glUniform1i(var->location, val);
-    return true;
-  }
-  WarnUniform(name);
-  return false;
-}
+  auto device           = GlobalDeviceResources.GetD3DDevice();
+  auto commandList      = GlobalDeviceResources.GetCommandList();
+  auto commandAllocator = GlobalDeviceResources.GetCommandAllocator();
 
-bool GLProgram::SetUniform(const std::string &name, const glm::mat4 &mat) {
-  const ShaderVariable *var{this->GetVariable(name)};
-  if((var != nullptr) && var->type == GL_FLOAT_MAT4) {
-    this->Use();
-    glUniformMatrix4fv(var->location, 1, GL_FALSE, glm::value_ptr(mat));
-    return true;
-  }
-  WarnUniform(name);
-  return false;
-}
+  auto modelViewProj = proj * view * model;
 
-const GLProgram::ShaderVariable *
-GLProgram::GetVariable(const std::string &name) const {
-  auto it{m_variables.find(name)};
-  if(it != m_variables.end()) { return &(it->second); }
-  return nullptr;
+  float *pt                           = glm::value_ptr(modelViewProj);
+  sceneBuffer.constants.modelViewProj = DirectX::XMMATRIX(pt);
+
+  // CBV
+  Microsoft::WRL::ComPtr<ID3D12Resource> cbv;
+  {
+    auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+    auto bufferDesc
+      = CD3DX12_RESOURCE_DESC::Buffer(sizeof(AlignedSceneConstantBuffer));
+    DX::ThrowIfFailed(
+      device->CreateCommittedResource(&uploadHeapProperties,
+                                      D3D12_HEAP_FLAG_NONE,
+                                      &bufferDesc,
+                                      D3D12_RESOURCE_STATE_GENERIC_READ,
+                                      nullptr,
+                                      IID_PPV_ARGS(&cbv)));
+  }
+
+  {
+    AlignedSceneConstantBuffer *ptr;
+    cbv->Map(0, nullptr, (void **)&ptr);
+    { *ptr = sceneBuffer; }
+    cbv->Unmap(0, nullptr);
+  }
+
+  {
+    {
+      // Change state to read.
+      D3D12_RESOURCE_BARRIER barrier[]
+        = {CD3DX12_RESOURCE_BARRIER::
+             Transition(GlobalCBV.Get(),
+                        D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
+                        D3D12_RESOURCE_STATE_COPY_DEST)};
+      commandList->ResourceBarrier(_countof(barrier), barrier);
+    }
+
+    // Copy over data.
+    commandList->CopyBufferRegion(GlobalCBV.Get(),
+                                  0,
+                                  cbv.Get(),
+                                  0,
+                                  sizeof(AlignedSceneConstantBuffer));
+
+    {
+      // Change state to read.
+      D3D12_RESOURCE_BARRIER barrier[]
+        = {CD3DX12_RESOURCE_BARRIER::
+             Transition(GlobalCBV.Get(),
+                        D3D12_RESOURCE_STATE_COPY_DEST,
+                        D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER)};
+      commandList->ResourceBarrier(_countof(barrier), barrier);
+    }
+  }
+
+  GlobalDeviceResources.StoreResource(cbv);
+
+  dirty = false;
 }
 
 bool GLProgram::LoadImpl() {
-  this->ErrorCheck();
+  auto device = GlobalDeviceResources.GetD3DDevice();
+
   std::stringstream ss(Data());
   std::string       line;
   while(std::getline(ss, line)) {
     m_shaders.emplace_back(line);
-    this->ErrorCheck();
   }
 
   bool success{true};
-  for(auto &it : m_shaders) {
-    success &= it.Loaded();
-    this->ErrorCheck();
+
+  D3D12_SHADER_BYTECODE byteCode[2] = {};
+  for(int i = 0; i < m_shaders.size(); i++) {
+    success &= m_shaders[i].Loaded();
+
+    byteCode[i]
+      = {reinterpret_cast<UINT8 *>((void *)m_shaders[i].Data().c_str()),
+         m_shaders[i].Data().length()};
   }
 
   if(success) {
-    m_ProgramID = glCreateProgram();
-    this->ErrorCheck();
-    for(const auto &shader : m_shaders) {
-      glAttachShader(m_ProgramID, shader.ID());
-      this->ErrorCheck();
-    }
-    glLinkProgram(m_ProgramID);
-    success = Check();
-    this->ErrorCheck();
-    if(!success) {
-      glDeleteProgram(m_ProgramID);
-    } else {
-      this->GetAttributes();
-      this->ErrorCheck();
-      this->GetUniforms();
-      this->ErrorCheck();
-    }
+    const D3D12_INPUT_ELEMENT_DESC layout[] = {
+      {"SV_POSITION",
+       0,
+       DXGI_FORMAT_R32G32B32_FLOAT,
+       0,
+       0,
+       D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+       0},
+      {"COLOR",
+       0,
+       DXGI_FORMAT_R32G32B32A32_FLOAT,
+       0,
+       12,
+       D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+       0},
+      {"TEXCOORD",
+       0,
+       DXGI_FORMAT_R32G32B32_FLOAT,
+       0,
+       28,
+       D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+       0},
+      {"NORMAL",
+       0,
+       DXGI_FORMAT_R32G32B32_FLOAT,
+       0,
+       40,
+       D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+       0},
+      {"TANGENT",
+       0,
+       DXGI_FORMAT_R32G32B32_FLOAT,
+       0,
+       52,
+       D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+       0},
+      {"BITANGENT",
+       0,
+       DXGI_FORMAT_R32G32B32_FLOAT,
+       0,
+       64,
+       D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+       0},
+    };
+
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+    psoDesc.InputLayout                        = {layout, _countof(layout)};
+    psoDesc.pRootSignature                     = GlobalRootSignature.Get();
+    psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+    psoDesc.BlendState      = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+    psoDesc.DepthStencilState.DepthEnable   = FALSE;
+    psoDesc.DepthStencilState.StencilEnable = FALSE;
+    psoDesc.SampleMask                      = UINT_MAX;
+    psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    psoDesc.NumRenderTargets      = 1;
+    psoDesc.RTVFormats[0]         = DXGI_FORMAT_R10G10B10A2_UNORM;
+    psoDesc.SampleDesc.Count      = 1;
+    psoDesc.VS                    = byteCode[0];
+    psoDesc.PS                    = byteCode[1];
+    DX::ThrowIfFailed(
+      device->CreateGraphicsPipelineState(&psoDesc,
+                                          IID_PPV_ARGS(&m_pipelineState)));
+
   } else {
     std::cout << "Failed to load shader program: " << this->Filename() << '.'
               << std::endl;
@@ -169,66 +218,7 @@ bool GLProgram::LoadImpl() {
 }
 
 void GLProgram::UnloadImpl() {
-  glDeleteProgram(m_ProgramID);
   m_ProgramID = 0;
   m_shaders.clear();
-  m_variables.clear();
 }
-
-bool GLProgram::Check() const {
-  int                   success{1};
-  std::array<char, 512> info{};
-  glGetProgramiv(m_ProgramID, GL_LINK_STATUS, &success);
-  if(success == 0) {
-    glGetProgramInfoLog(m_ProgramID, 512, nullptr, info.data());
-    std::cout << "An error has occurred on the program: " << Filename()
-              << ".\nInfo:\n"
-              << info.data() << std::endl;
-  }
-
-  return success != 0;
-}
-
-void GLProgram::GetAttributes() {
-  int count{0};
-  glGetProgramiv(this->ID(), GL_ACTIVE_ATTRIBUTES, &count);
-  std::array<char, 64> buffer{};
-  for(unsigned i{0}; static_cast<int>(i) < count; ++i) {
-    ShaderVariable sv;
-    GLsizei        namelength;
-    sv.location = i;
-    glGetActiveAttrib(this->ID(), i, static_cast<GLsizei>(buffer.size()),
-                      &namelength, &sv.size, &sv.type, buffer.data());
-    sv.name              = buffer.data();
-    m_variables[sv.name] = sv;
-  }
-}
-
-void GLProgram::GetUniforms() {
-  int count{0};
-  glGetProgramiv(this->ID(), GL_ACTIVE_UNIFORMS, &count);
-  std::array<char, 64> buffer{};
-  for(unsigned i{0}; static_cast<int>(i) < count; ++i) {
-    ShaderVariable sv;
-    GLsizei        namelength;
-    sv.location = i;
-    glGetActiveUniform(this->ID(), i, static_cast<GLsizei>(buffer.size()),
-                       &namelength, &sv.size, &sv.type, buffer.data());
-    sv.name              = buffer.data();
-    m_variables[sv.name] = sv;
-  }
-}
-
-void GLProgram::WarnUniform(const std::string & /*uniformName*/) const {
-  // turning off spam for now
-  /*
-  std::cout << "Warning: Shader program \""
-  << Filename( )
-  << "\": failed to set uniform \""
-  << uniformName
-  << "\"."
-  << std::endl;
-  */
-}  // endfunc
-
-}  // end namespace Jellyfish
+}  // namespace Jellyfish

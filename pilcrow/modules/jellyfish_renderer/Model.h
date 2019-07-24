@@ -32,7 +32,7 @@ public:
   Model(const std::string &path);
   Model(const Model &model);
   ~Model();
-  void Draw() const;
+  void Draw();
 
   float GetScale(void) { return m_scalefactor; }
 

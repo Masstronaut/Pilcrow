@@ -1,9 +1,6 @@
 // std
 #include <iostream>
 
-// GL
-#include <glad/include/glad.h>
-
 // ours
 #include "pilcrow/modules/jellyfish_renderer/GL/GLMesh.h"
 #include "pilcrow/modules/jellyfish_renderer/GL/GLTexture.h"
@@ -16,74 +13,209 @@ GLMesh::GLMesh(const std::vector<Vertex> &              Vertices,
   Load();
 }
 
-void GLMesh::Draw() const {
-  unsigned diffuse{1}, specular{1};
+void GLMesh::Draw() {
+  auto device           = GlobalDeviceResources.GetD3DDevice();
+  auto commandList      = GlobalDeviceResources.GetCommandList();
+  auto commandAllocator = GlobalDeviceResources.GetCommandAllocator();
 
-  for(unsigned i{0}; i < m_Textures.size(); ++i) {
-    glActiveTexture(GL_TEXTURE0 + i);
-    std::string name;
+  D3D12_VERTEX_BUFFER_VIEW vbv;
+  {
+    // setup vertex and index buffer structs
+    vbv.BufferLocation = m_verts->GetGPUVirtualAddress();
+    vbv.StrideInBytes  = sizeof(Vertex);
+    vbv.SizeInBytes    = vbv.StrideInBytes * m_Vertices.size();
+  }
 
-    switch(m_Textures[i]->Type()) {
-      case iTexture::TextureType::diffuse: {
-        name = "diffuse";
-        name += std::to_string(diffuse++);
+  D3D12_INDEX_BUFFER_VIEW ibv;
+  {
+    ibv.BufferLocation = m_indices->GetGPUVirtualAddress();
+    ibv.Format         = DXGI_FORMAT_R32_UINT;
+    ibv.SizeInBytes    = m_Indices.size() * sizeof(UINT32);
+  }
 
-        if(!m_shader->SetUniform(name, static_cast<int>(i))) {
-          std::cout << "Error! Could not set shader uniform:" << name
-                    << std::endl;
-        } else {
-          glBindTexture(GL_TEXTURE_2D, m_Textures[i]->ID());
-          glActiveTexture(GL_TEXTURE0);
+  //if (!diffuse)
+  {
+    {
+      for(unsigned i{0}; i < m_Textures.size(); ++i) {
+        switch(m_Textures[i]->Type()) {
+          case iTexture::TextureType::diffuse: {
+            diffuse = m_Textures[i]->ID();
+
+            break;
+          }
         }
-
-        break;
       }
 
-        // case iTexture::TextureType::specular:
-        //	name = "specular";
-        //	name += std::to_string(specular++);
-        //	break;
+      if(!diffuse) {
+        return;
+      } else {
+        texID = SetupTexture(
+			diffuse,
+			texID);
+      }
     }
   }
 
-  glBindVertexArray(VAO);
-  glDrawElements(GL_TRIANGLES, static_cast<int>(m_Indices.size()),
-                 GL_UNSIGNED_INT, nullptr);
-  glBindVertexArray(0);
+  m_shader->Use(true);
+  {
+    // Draw.
+    PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render Mesh");
+    {
+      m_shader->UpdateCB();
+
+      if(!diffuse)
+        SetTexture(LastTexID);
+      else
+        SetTexture(texID);
+
+      commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+      commandList->IASetVertexBuffers(0, 1, &vbv);
+      commandList->IASetIndexBuffer(&ibv);
+      commandList->DrawIndexedInstanced(m_Indices.size(), 1, 0, 0, 0);
+
+      // Store.
+    {
+      GlobalDeviceResources.StoreResource(m_verts);
+      GlobalDeviceResources.StoreResource(m_indices);
+      GlobalDeviceResources.StoreResource(diffuse);
+    }
+  }
+  PIXEndEvent(commandList);
+  }
 }
 
 void GLMesh::Load() {
-  glGenVertexArrays(1, &VAO);
-  glGenBuffers(1, &VBO);
-  glGenBuffers(1, &EBO);
-  glBindVertexArray(VAO);
+  auto device           = GlobalDeviceResources.GetD3DDevice();
+  auto commandList      = GlobalDeviceResources.GetCommandList();
+  auto commandAllocator = GlobalDeviceResources.GetCommandAllocator();
 
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, m_Vertices.size() * sizeof(Vertex),
-               m_Vertices.data(), GL_STATIC_DRAW);
+  auto vertSize  = m_Vertices.size() * sizeof(Vertex);
+  auto indexSize = m_Indices.size() * sizeof(decltype(m_Indices)::value_type);
 
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-               m_Indices.size() * sizeof(decltype(m_Indices)::value_type),
-               m_Indices.data(), GL_STATIC_DRAW);
+  {
+    Microsoft::WRL::ComPtr<ID3D12Resource> upload;
+    {
+      unsigned int maxDataSize = vertSize;
+      auto         uploadHeapProperties
+        = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+      auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(maxDataSize);
+      DX::ThrowIfFailed(
+        device->CreateCommittedResource(&uploadHeapProperties,
+                                        D3D12_HEAP_FLAG_NONE,
+                                        &bufferDesc,
+                                        D3D12_RESOURCE_STATE_GENERIC_READ,
+                                        nullptr,
+                                        IID_PPV_ARGS(&upload)));
+    }
 
-  // Position attribute
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                        (GLvoid *)nullptr);
-  glEnableVertexAttribArray(0);
+    {
+      void *pMappedData;
+      upload->Map(0, nullptr, &pMappedData);
+      memcpy(pMappedData, m_Vertices.data(), vertSize);
+      upload->Unmap(0, nullptr);
+    }
 
-  // Color Attribute
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                        (GLvoid *)offsetof(Vertex, m_Normal));
-  glEnableVertexAttribArray(1);
+    {
+      {
+        auto defaultProperties
+          = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(vertSize);
+        DX::ThrowIfFailed(
+          device->CreateCommittedResource(&defaultProperties,
+                                          D3D12_HEAP_FLAG_NONE,
+                                          &bufferDesc,
+                                          D3D12_RESOURCE_STATE_COPY_DEST,
+                                          nullptr,
+                                          IID_PPV_ARGS(&m_verts)));
+      }
 
-  // Texcoord attribute
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                        (GLvoid *)offsetof(Vertex, m_TexCoords));
-  glEnableVertexAttribArray(2);
+      PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Vert Upload");
+      {
+        // Copy over data.
+        commandList->CopyBufferRegion(m_verts.Get(),
+                                      0,
+                                      upload.Get(),
+                                      0,
+                                      vertSize);
 
-  // Unbind VAO
-  glBindVertexArray(0);
+        // Change state to index buffer.
+        D3D12_RESOURCE_BARRIER barrier[]
+          = {CD3DX12_RESOURCE_BARRIER::
+               Transition(m_verts.Get(),
+                          D3D12_RESOURCE_STATE_COPY_DEST,
+                          D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER)};
+        commandList->ResourceBarrier(_countof(barrier), barrier);
+      }
+      PIXEndEvent(commandList);
+
+      // Store.
+      {
+        GlobalDeviceResources.StoreResource(m_verts);
+        GlobalDeviceResources.StoreResource(upload);
+      }
+    }
+  }
+
+  {
+    Microsoft::WRL::ComPtr<ID3D12Resource> upload;
+    {
+      unsigned int maxDataSize = indexSize;
+      auto         uploadHeapProperties
+        = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+      auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(maxDataSize);
+      DX::ThrowIfFailed(
+        device->CreateCommittedResource(&uploadHeapProperties,
+                                        D3D12_HEAP_FLAG_NONE,
+                                        &bufferDesc,
+                                        D3D12_RESOURCE_STATE_GENERIC_READ,
+                                        nullptr,
+                                        IID_PPV_ARGS(&upload)));
+    }
+
+    {
+      void *pMappedData;
+      upload->Map(0, nullptr, &pMappedData);
+      memcpy(pMappedData, m_Indices.data(), indexSize);
+      upload->Unmap(0, nullptr);
+    }
+
+    {
+      auto defaultProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+      auto bufferDesc        = CD3DX12_RESOURCE_DESC::Buffer(indexSize);
+      DX::ThrowIfFailed(
+        device->CreateCommittedResource(&defaultProperties,
+                                        D3D12_HEAP_FLAG_NONE,
+                                        &bufferDesc,
+                                        D3D12_RESOURCE_STATE_COPY_DEST,
+                                        nullptr,
+                                        IID_PPV_ARGS(&m_indices)));
+    }
+
+    PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Index Upload");
+    {
+      // Copy over data.
+      commandList->CopyBufferRegion(m_indices.Get(),
+                                    0,
+                                    upload.Get(),
+                                    0,
+                                    indexSize);
+
+	   // Change state to index buffer.
+      D3D12_RESOURCE_BARRIER barrier[]
+        = {CD3DX12_RESOURCE_BARRIER::
+             Transition(m_indices.Get(),
+                        D3D12_RESOURCE_STATE_COPY_DEST,
+                        D3D12_RESOURCE_STATE_INDEX_BUFFER)};
+      commandList->ResourceBarrier(_countof(barrier), barrier);
+    }
+    PIXEndEvent(commandList);
+
+    // Store.
+    {
+      GlobalDeviceResources.StoreResource(m_indices);
+      GlobalDeviceResources.StoreResource(upload);
+    }
+  }
 }
 
 void GLMesh::AssignShader(GLProgram &shader) { m_shader = &shader; }

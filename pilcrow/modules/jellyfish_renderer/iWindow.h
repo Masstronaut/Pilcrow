@@ -97,6 +97,7 @@ public:
   virtual void PollEvents()                          = 0;
   virtual void PollInput(std::vector<int> &keyarray) = 0;
 
+  virtual void FrameStart() = 0;
   virtual void FrameEnd() = 0;
 
   const glm::uvec2 & GetSize() const { return m_Size; }

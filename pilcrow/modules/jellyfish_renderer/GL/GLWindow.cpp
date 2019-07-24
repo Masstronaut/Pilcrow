@@ -1,13 +1,14 @@
 // std
 #include <iostream>  //cout
 
-// GL
-#include <glad/include/glad.h>  //opengl -- MUST BE INCLUDED BEFORE GLFW
 // empty line so clang-format alphabetizing doesn't put glad below glfw
 
-#include <GLFW/glfw3.h>         //glfw window stuff
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3.h>  //glfw window stuff
+#include <GLFW/glfw3native.h>
 
 // ours
+#include "GlobalD3DResources.h"
 #include "pilcrow/modules/jellyfish_renderer/GL/GLWindow.h"
 
 // TODO(unknown): fix, put in settings or something
@@ -23,12 +24,14 @@ GLWindow::~GLWindow() {
   glfwTerminate();
 }
 
-void GLWindow::CreateGameWindow(unsigned width, unsigned height,
-                                bool fullscreen, std::string title) {
+void GLWindow::CreateGameWindow(unsigned    width,
+                                unsigned    height,
+                                bool        fullscreen,
+                                std::string title) {
   if(glfwInit() != 0) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, glmajor);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, glminor);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_FOCUSED, GL_TRUE);
 #if defined(__APPLE__)
     // required for MAC OSX support
@@ -45,8 +48,11 @@ void GLWindow::CreateGameWindow(unsigned width, unsigned height,
 
       // Create a borderless fullscreen window at current resolution
       m_Size         = glm::uvec2(tempWidth, tempHeight);
-      m_WindowHandle = glfwCreateWindow(tempWidth, tempHeight, title.c_str(),
-                                        primaryMonitor, nullptr);
+      m_WindowHandle = glfwCreateWindow(tempWidth,
+                                        tempHeight,
+                                        title.c_str(),
+                                        primaryMonitor,
+                                        nullptr);
     } else {
       // Create a restored resizable window at specified resolution
       glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
@@ -89,20 +95,27 @@ void GLWindow::CreateGameWindow(unsigned width, unsigned height,
     //	return;
     //}
 
-    // Initialize GLAD to setup the OpenGL Function pointers
-    if(gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))
-       == 0) {
-      std::cout << "Failed to initialize GLAD Loader!" << std::endl;
-      system("pause");
-      return;
-    }
+    GlobalDeviceResources.RegisterDeviceNotify(this);
+
+    GlobalDeviceResources.SetWindow(glfwGetWin32Window(m_WindowHandle),
+                                    width,
+                                    height);
+
+    GlobalDeviceResources.CreateDeviceResources();
+
+    GlobalDeviceResources.CreateWindowSizeDependentResources();
+
+    GlobalSetupRootParams();
 
     // Define the viewport dimensions
     GLsizei w = this->GetWindowWidth();
     GLsizei h = this->GetWindowHeight();
     glfwGetFramebufferSize(m_WindowHandle, &w, &h);
-    glViewport(0, 0, w, h);
 
+    GlobalWidth  = width;
+    GlobalHeight = height;
+
+	inRender = false;
   } else {
     std::cout << "Failed to initialize GLFW!" << std::endl;
     system("pause");
@@ -110,13 +123,22 @@ void GLWindow::CreateGameWindow(unsigned width, unsigned height,
   }
   // ALL OK!
 
-  // TODO(unknown): Move into renderer init after migration
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  FrameStart();
 }
 void GLWindow::UpdateGameWindow() {}
-void GLWindow::DisplayGameWindow() { glfwSwapBuffers(m_WindowHandle); }
+void GLWindow::DisplayGameWindow() {
+  inRender = false;
+
+  auto device           = GlobalDeviceResources.GetD3DDevice();
+  auto commandList      = GlobalDeviceResources.GetCommandList();
+  auto commandAllocator = GlobalDeviceResources.GetCommandAllocator();
+
+  PIXBeginEvent(GlobalDeviceResources.GetCommandQueue(),
+                PIX_COLOR_DEFAULT,
+                L"Present");
+  { GlobalDeviceResources.Present(); }
+  PIXEndEvent(GlobalDeviceResources.GetCommandQueue());
+}
 
 bool GLWindow::IsOpen() { return m_Open; }
 bool GLWindow::IsActive() { return m_Active; }
@@ -136,12 +158,53 @@ void GLWindow::ResizeWindow(unsigned width, unsigned height) {
               << std::endl;
 
     glfwMakeContextCurrent(m_WindowHandle);
-    glViewport(0, 0, width, height);
+
+    GlobalWidth  = width;
+    GlobalHeight = height;
   }
 }
 
 unsigned GLWindow::GetWindowWidth() { return m_Size.x; }
 unsigned GLWindow::GetWindowHeight() { return m_Size.y; }
+
+void GLWindow::FrameStart() {
+  auto device           = GlobalDeviceResources.GetD3DDevice();
+  auto commandList      = GlobalDeviceResources.GetCommandList();
+  auto commandAllocator = GlobalDeviceResources.GetCommandAllocator();
+
+  if (inRender)
+  { return;
+  }
+
+  inRender = true;
+
+  // Start first frame.
+  {
+    GlobalDeviceResources.Prepare();
+
+    {
+      FLOAT black[] = {0.f, 0.f, 0.f, 1.f};
+      commandList
+        ->ClearRenderTargetView(GlobalDeviceResources.GetRenderTargetView(),
+                                black,
+                                0,
+                                nullptr);
+      commandList
+        ->ClearDepthStencilView(GlobalDeviceResources.GetDepthStencilView(),
+                                D3D12_CLEAR_FLAG_DEPTH
+                                  | D3D12_CLEAR_FLAG_STENCIL,
+                                1.f,
+                                0,
+                                0,
+                                nullptr);
+      commandList
+        ->OMSetRenderTargets(1,
+                             &GlobalDeviceResources.GetRenderTargetView(),
+                             true,
+                             &GlobalDeviceResources.GetDepthStencilView());
+    }
+  }
+}
 
 void GLWindow::FrameEnd() {
   DisplayGameWindow();
@@ -234,7 +297,8 @@ void GLWindow::PollInput(std::vector<int> &keyarray) {
 
 }  // endfunc
 
-void GLWindow::Callback_ResizeWindow(GLFWwindow * /*windowhandle*/, int width,
+void GLWindow::Callback_ResizeWindow(GLFWwindow * /*windowhandle*/,
+                                     int width,
                                      int height) {
   g_singleton_window->ResizeWindow(width, height);
 }
@@ -244,14 +308,16 @@ void GLWindow::Callback_WindowClose(GLFWwindow *windowhandle) {
 
   g_singleton_window->SetWindowState(WindowState::closed);
 }
-void GLWindow::Callback_WindowMove(GLFWwindow * /*windowhandle*/, int xpos,
+void GLWindow::Callback_WindowMove(GLFWwindow * /*windowhandle*/,
+                                   int xpos,
                                    int ypos) {
   // DEBUG:
   std::cout << "Window position was moved to: " << xpos << ", " << ypos
             << std::endl;
 }
 void GLWindow::Callback_CursorPosition(GLFWwindow * /*windowhandle*/,
-                                       double xpos, double ypos) {
+                                       double xpos,
+                                       double ypos) {
   // DEBUG:
   std::cout << "Cursor position moved: " << xpos << ", " << ypos << std::endl;
 
@@ -265,8 +331,10 @@ void GLWindow::Callback_CursorPosition(GLFWwindow * /*windowhandle*/,
   // update pos
   g_singleton_window->m_Cursor.position = glm::dvec2{xpos, ypos};
 }
-void GLWindow::Callback_MouseButton(GLFWwindow * /*window*/, int button,
-                                    int action, int /*mods*/) {
+void GLWindow::Callback_MouseButton(GLFWwindow * /*window*/,
+                                    int button,
+                                    int action,
+                                    int /*mods*/) {
   // mods is is all possible glfw modifier bit states as defined below
   /*
   #define 	GLFW_MOD_SHIFT   0x0001
@@ -350,4 +418,13 @@ void GLWindow::Callback_MouseButton(GLFWwindow * /*window*/, int button,
   // set window state data
   g_singleton_window->m_Cursor.buttonStates[button] = action;
 }
+
+void GLWindow::OnDeviceLost() {
+  throw std::exception("Function not implemented yet.");
+}
+
+void GLWindow::OnDeviceRestored() {
+  throw std::exception("Function not implemented yet.");
+}
+
 }  // namespace Jellyfish

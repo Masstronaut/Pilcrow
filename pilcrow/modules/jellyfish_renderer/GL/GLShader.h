@@ -1,7 +1,7 @@
 #pragma once
 
 // GL
-#include <glad/include/glad.h>  //GLuint
+#include "GlobalD3DResources.h"
 
 // ours
 #include "Utils/Resource.hpp"
@@ -16,8 +16,6 @@ public:
   ~GLShader();
 
   // Overriding iShader:
-  unsigned ID() const override;
-  unsigned Type() const override;
   void     Use() const override;
   bool     Check() const override;
 
@@ -30,8 +28,7 @@ private:
   bool LoadImpl() final;
   void UnloadImpl() final;
 
-  GLuint   m_GLuID{};
-  unsigned m_GLShaderType;
+  Microsoft::WRL::ComPtr<ID3D12Resource> m_shader;
 
 };  // class GLShader
 
