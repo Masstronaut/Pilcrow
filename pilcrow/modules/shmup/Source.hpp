@@ -10,6 +10,7 @@
 #include "pilcrow/engine/core/components/Transform.h"
 #include "pilcrow/engine/core/RenderSystem.h"
 
+#include "pilcrow/modules/physics/components/CircleCollider.h"
 
 struct [[Meta::Reflectable("shmup")]] Player
 {
@@ -87,6 +88,8 @@ private:
 
 public:
   EnemySystem(ArchetypeRef aEnemyArchetype, World& aWorld);
+
+  void OnCollision(const CircleCollisionEvent &event);
 
   void PreProcess();
   void Update();

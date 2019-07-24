@@ -15,7 +15,7 @@ void CollisionDetection::Update(float dt) {
       CircleCollider &cc2{entity2.Get<CircleCollider>()};
       if(cc.Group == cc2.Group) continue;
       glm::vec2 pos1{tf.position.x, tf.position.y};
-      glm::vec2 pos2{tf2.position.x, tf.position.y};
+      glm::vec2 pos2{tf2.position.x, tf2.position.y};
       if(float dist{glm::distance(pos1, pos2)};
          dist < (cc.Radius + cc2.Radius)) {
         EntityRef ER1 = entity.GetEntity();

@@ -150,11 +150,11 @@ void ECSDemo() {
                                    CreateEnemyArchetype(Sim),
                                    TestWorld);
   TestWorld.AddSystem<CollisionDetection>("Collision Detection System");
-  TestWorld.On([](const CircleCollisionEvent &event) {
+  /*TestWorld.On([](const CircleCollisionEvent &event) {
     std::cout << "Collision event:\n"
               << event.Entity1->Name() << " collided with "
               << event.Entity2->Name() << std::endl;
-  });
+  });*/
   EntityRef player{TestWorld.Spawn(CreatePlayerArchetype(Sim))};
 
   // Camera
